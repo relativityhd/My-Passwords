@@ -1,32 +1,28 @@
 #![allow(dead_code)]
+#![allow(unused_doc_comments)]
 #![cfg_attr(
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
+use dotenvy::dotenv;
 
 mod generator;
 mod model;
 mod schema;
-
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
-#[tauri::command]
-fn gen_pw(institution: &str, industry: model::Industry, secret: &str, account_name: &str) -> String {
-    generator::gen_pw(institution, &industry, secret, account_name)
-}
-
-#[tauri::command]
-fn gen_legacy_pw(institution: &str, industry: model::Industry, secret: &str) -> String {
-    generator::gen_legacy_pw(institution, &industry, secret)
-}
+mod database;
+mod handlers;
+mod auth;
 
 fn main() {
+    dotenv().ok();
+    let pool = database::create_connection_pool();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet, gen_pw, gen_legacy_pw])
+        .plugin(auth::init(pool.clone()))
+        .manage(pool)
+        .invoke_handler(tauri::generate_handler![
+            handlers::greet,
+            handlers::gen_pw,
+            handlers::gen_legacy_pw])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

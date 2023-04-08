@@ -18,6 +18,7 @@ pub enum Industry {
 #[derive(Serialize, Debug, Queryable)]
 pub struct PasswordMeta {
   id: i32,
+  user_id: i32,
   account_name: String,
   secret: String,
   institution: String,
