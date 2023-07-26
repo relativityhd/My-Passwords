@@ -1,9 +1,9 @@
 use chrono::{DateTime, Utc};
 use serde::{Serialize, Deserialize};
-use diesel::prelude::{Queryable};
 
 use super::generator;
 
+// TODO: Add Gov
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Industry {
   Tech,     // -> @
@@ -15,11 +15,11 @@ pub enum Industry {
   Other     // -> &
 }
 
-#[derive(Serialize, Debug, Queryable)]
-pub struct PasswordMeta {
+#[derive(Serialize, Debug)]
+pub struct Account {
   id: i32,
-  account_name: String,
-  secret: String,
+  account_name: String, // Users username
+  secret: String, // Users secret
   institution: String,
   industry: Industry,
   is_legacy: bool,
@@ -27,7 +27,7 @@ pub struct PasswordMeta {
   date_created: DateTime<Utc>
 }
 
-impl PasswordMeta {
+impl Account {
   fn gen_pw(&self) -> String {
     generator::gen_pw(&self.institution, &self.industry, &self.secret, &self.account_name)
   }

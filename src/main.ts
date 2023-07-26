@@ -1,4 +1,3 @@
-import "./style.css";
 import "carbon-components-svelte/css/g90.css";
 import App from "./App.svelte";
 
