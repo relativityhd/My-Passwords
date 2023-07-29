@@ -1,0 +1,62 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+enum Industry {
+  Tech
+  Games
+  Social
+  Finance
+  Shopping
+  Science
+  Other
+}
+
+enum Mode {
+  Secure
+  SuperSecure
+  LegacySecure
+}
+
+Table accounts {
+  id integer [pk, unique]
+  created_at timestamp
+  account_name varchar
+  mode Mode [default: Mode::Secure]
+  pin integer [null]
+  min_length integer [null]
+  max_length integer [null]
+  industry Industry [null]
+  two_factor_auth bool [default: false]
+  recovery text [null]
+  user_id integer
+  bucket_id integer
+  institution_id integer
+}
+
+Table users {
+  id integer [primary key]
+  username varchar
+  pass varchar
+}
+
+Table buckets {
+  id integer [primary key]
+  name varchar
+  color varchar
+  user_id integer
+}
+
+Table institutions {
+  id integer [primary key]
+  name varchar
+  is_sso bool [default: false]
+  alias varchar[] [null]
+  website varchar [null]
+  user_id integer
+}
+
+Ref: accounts.user_id > users.id
+Ref: accounts.bucket_id > buckets.id
+Ref: accounts.institution_id > institutions.id
+Ref: buckets.user_id > users.id
+Ref: institutions.user_id > users.id
