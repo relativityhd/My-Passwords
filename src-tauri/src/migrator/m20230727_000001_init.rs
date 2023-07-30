@@ -107,11 +107,7 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(
-                        ColumnDef::new(Account::CreatedAt)
-                            .timestamp_with_time_zone()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(Account::CreatedAt).string().not_null())
                     .col(ColumnDef::new(Account::AccountName).string().not_null())
                     .col(
                         ColumnDef::new(Account::Mode)
@@ -131,8 +127,9 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(Account::Recovery).string())
                     .col(ColumnDef::new(Account::UserId).integer().not_null())
-                    .col(ColumnDef::new(Account::BucketId).integer().not_null())
+                    .col(ColumnDef::new(Account::BucketId).integer())
                     .col(ColumnDef::new(Account::InstitutionId).integer().not_null())
+                    .col(ColumnDef::new(Account::SsoId).integer())
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk_account_user_id")
@@ -153,6 +150,14 @@ impl MigrationTrait for Migration {
                         ForeignKey::create()
                             .name("fk_account_institution_id")
                             .from(Account::Table, Account::InstitutionId)
+                            .to(Institution::Table, Institution::Id)
+                            .on_delete(ForeignKeyAction::Cascade)
+                            .on_update(ForeignKeyAction::Cascade),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk_account_sso_id")
+                            .from(Account::Table, Account::SsoId)
                             .to(Institution::Table, Institution::Id)
                             .on_delete(ForeignKeyAction::Cascade)
                             .on_update(ForeignKeyAction::Cascade),

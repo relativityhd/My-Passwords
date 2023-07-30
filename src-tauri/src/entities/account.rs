@@ -17,8 +17,9 @@ pub struct Model {
     pub two_factor_auth: bool,
     pub recovery: Option<String>,
     pub user_id: i32,
-    pub bucket_id: i32,
+    pub bucket_id: Option<i32>,
     pub institution_id: i32,
+    pub sso_id: Option<i32>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -33,12 +34,20 @@ pub enum Relation {
     Bucket,
     #[sea_orm(
         belongs_to = "super::institution::Entity",
+        from = "Column::SsoId",
+        to = "super::institution::Column::Id",
+        on_update = "Cascade",
+        on_delete = "Cascade"
+    )]
+    Institution2,
+    #[sea_orm(
+        belongs_to = "super::institution::Entity",
         from = "Column::InstitutionId",
         to = "super::institution::Column::Id",
         on_update = "Cascade",
         on_delete = "Cascade"
     )]
-    Institution,
+    Institution1,
     #[sea_orm(
         belongs_to = "super::user::Entity",
         from = "Column::UserId",
@@ -52,12 +61,6 @@ pub enum Relation {
 impl Related<super::bucket::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Bucket.def()
-    }
-}
-
-impl Related<super::institution::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::Institution.def()
     }
 }
 

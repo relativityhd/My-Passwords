@@ -9,7 +9,6 @@ use specta::Type;
 use std::str::FromStr;
 use std::sync::Mutex;
 use thiserror::Error;
-use tokio::join;
 
 //type DB = tauri::State<Mutex<DatabaseConnection>>;
 //type User = tauri::State<Mutex<user::Model>>;
@@ -34,11 +33,17 @@ impl RetrievedSecretAccount {
         secret: &str,
         mode: Mode,
         account: <entities::account::Entity as sea_orm::EntityTrait>::Model,
-        bucket: <entities::bucket::Entity as sea_orm::EntityTrait>::Model,
+        bucket: Option<<entities::bucket::Entity as sea_orm::EntityTrait>::Model>,
         institution: <entities::institution::Entity as sea_orm::EntityTrait>::Model,
     ) -> Self {
         let industry = Industry::from_str(&account.industry).unwrap();
         let password = gen_pw(&institution.name, &industry, secret, &account.account_name);
+        let mut bucket_name = "Unsorted".to_owned();
+        let mut bucket_color = "#000000".to_owned();
+        if let Some(bucket) = bucket {
+            bucket_name = bucket.name;
+            bucket_color = bucket.color;
+        }
         Self {
             id: account.id,
             created_at: account.created_at,
@@ -47,8 +52,8 @@ impl RetrievedSecretAccount {
             industry,
             two_factor_auth: account.two_factor_auth,
             recovery: account.recovery,
-            bucket_name: bucket.name,
-            bucket_color: bucket.color,
+            bucket_name,
+            bucket_color,
             institution_name: institution.name,
             password,
         }
@@ -66,6 +71,8 @@ pub enum AccountError {
     Db(#[from] DbErr),
     #[error("No account found with id {0}")]
     NotFound(i32),
+    #[error("The account doesn't belong to the current user")]
+    NotAuthorized,
     #[error("Database is probably corrupted: No Bucket found with id {0}")]
     CorruptedBucket(i32),
     #[error("Database is probably corrupted: No Institution found with id {0}")]
@@ -87,26 +94,39 @@ impl Serialize for AccountError {
 #[specta::specta]
 pub async fn retrieve_account(
     db: tauri::State<'_, DatabaseConnection>,
+    user: tauri::State<'_, Mutex<user::Model>>,
     account_id: i32,
 ) -> Result<RetrievedAccount, AccountError> {
+    let user_id = user.lock().unwrap().id;
+    drop(user);
+
     let account = Account::find_by_id(account_id)
         .one(db.inner())
         .await?
         .ok_or(AccountError::NotFound(account_id))?;
-    // TODO check if acc user == user
-    let bucket_future = Bucket::find_by_id(account.bucket_id).one(db.inner());
+
+    // Check if user is authorized to access this account
+    if account.user_id != user_id {
+        return Err(AccountError::NotAuthorized);
+    }
+
     let institution_future = Institution::find_by_id(account.institution_id).one(db.inner());
-    let res = join!(bucket_future, institution_future);
-    let bucket = res
-        .0?
-        .ok_or(AccountError::CorruptedBucket(account.bucket_id))?;
-    let institution = res
-        .1?
+    let mut acc_bucket: Option<bucket::Model> = None;
+    if let Some(bucket_id) = account.bucket_id {
+        acc_bucket = Some(
+            Bucket::find_by_id(bucket_id)
+                .one(db.inner())
+                .await?
+                .ok_or(AccountError::CorruptedBucket(bucket_id))?,
+        );
+    }
+    let acc_institution = institution_future
+        .await?
         .ok_or(AccountError::CorruptedInstitution(account.institution_id))?;
     let secret = "secret_val"; // TODO: get secret from user and limit it to max 10 chars
     let mode = Mode::from_str(&account.mode)?; // TODO: fetch SSO-Instiution from DB in SSO mode
     let retrieved_account =
-        RetrievedSecretAccount::new(&secret, mode, account, bucket, institution);
+        RetrievedSecretAccount::new(&secret, mode, account, acc_bucket, acc_institution);
     Ok(RetrievedAccount::RetrievedSecretAccount(retrieved_account))
 }
 
@@ -118,11 +138,11 @@ pub async fn add_acc(
     institution_name: &str,
     account_name: &str,
     industry: Industry,
+    bucket_id: Option<i32>,
 ) -> Result<i32, AccountError> {
     let mode = Mode::Secure;
     let created = Utc::now();
     let user_id = user.lock().unwrap().id;
-    let bucket_id = 1;
     drop(user);
 
     let mut institution = Institution::find()
@@ -164,6 +184,12 @@ pub async fn add_super_acc() -> Result<(), AccountError> {
 
 #[tauri::command]
 #[specta::specta]
+pub async fn add_sso_acc() -> Result<(), AccountError> {
+    todo!()
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn move_acc_to_bucket() -> Result<(), AccountError> {
     todo!()
 }
@@ -184,4 +210,19 @@ pub async fn delete_acc() -> Result<(), AccountError> {
 #[specta::specta]
 pub async fn search_acc() -> Result<(), AccountError> {
     todo!()
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_user_accounts(
+    db: tauri::State<'_, DatabaseConnection>,
+    user: tauri::State<'_, Mutex<user::Model>>,
+) -> Result<Vec<account::Model>, AccountError> {
+    let user_id = user.lock().unwrap().id;
+    drop(user);
+    let buckets = account::Entity::find()
+        .filter(account::Column::UserId.eq(user_id))
+        .all(db.inner())
+        .await?;
+    Ok(buckets)
 }

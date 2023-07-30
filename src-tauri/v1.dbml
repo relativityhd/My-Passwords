@@ -29,8 +29,9 @@ Table accounts {
   two_factor_auth bool [default: false]
   recovery text [null]
   user_id integer
-  bucket_id integer
+  bucket_id integer [null]
   institution_id integer
+  sso_id integer [null]
 }
 
 Table users {
@@ -58,5 +59,6 @@ Table institutions {
 Ref: accounts.user_id > users.id
 Ref: accounts.bucket_id > buckets.id
 Ref: accounts.institution_id > institutions.id
+Ref: accounts.sso_id > institutions.id
 Ref: buckets.user_id > users.id
 Ref: institutions.user_id > users.id

@@ -14,3 +14,5 @@ Roadmap:
 - Change database either to surrealdb for the flex or make a git-backed file-system password store for [password history](https://www.youtube.com/watch?v=FhwsfH2TpFA)
 - SuperSecure Mode: Monatsabhänig machen für z.B. IBM wo alle 3 Monate geupdatet werden muss
 - Passwort mit freier Eingabe
+- Sanity Checks: Überprüfen, ob Acc / Bucket / Institution zum Benutzer gehört
+- Add indicies to DB
