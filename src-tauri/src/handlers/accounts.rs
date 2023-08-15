@@ -217,12 +217,12 @@ pub async fn search_acc() -> Result<(), AccountError> {
 pub async fn get_user_accounts(
     db: tauri::State<'_, DatabaseConnection>,
     user: tauri::State<'_, Mutex<user::Model>>,
-) -> Result<Vec<account::Model>, AccountError> {
+) -> Result<Vec<RetrievedAccount>, AccountError> {
     let user_id = user.lock().unwrap().id;
     drop(user);
-    let buckets = account::Entity::find()
+    let accounts = account::Entity::find()
         .filter(account::Column::UserId.eq(user_id))
         .all(db.inner())
         .await?;
-    Ok(buckets)
+    Ok(accounts.into_iter().map(|a| a.into()).collect())
 }

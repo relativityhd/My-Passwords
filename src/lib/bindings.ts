@@ -18,6 +18,27 @@ export function retrieveAccount(accountId: number) {
     return invoke()<RetrievedAccount>("retrieve_account", { accountId })
 }
 
+export function createBucket(bucketName: string, bucketColor: string) {
+    return invoke()<number>("create_bucket", { bucketName,bucketColor })
+}
+
+export function recolorBucket(bucketId: number, bucketColor: string) {
+    return invoke()<number>("recolor_bucket", { bucketId,bucketColor })
+}
+
+export function renameBucket(bucketId: number, bucketName: string) {
+    return invoke()<number>("rename_bucket", { bucketId,bucketName })
+}
+
+export function deleteBucket(bucketId: number) {
+    return invoke()<number>("delete_bucket", { bucketId })
+}
+
+export function getUserBuckets() {
+    return invoke()<RetrievedBucket[]>("get_user_buckets")
+}
+
+export type RetrievedBucket = { id: number; name: string; color: string }
 export type RetrievedSecretAccount = { id: number; created_at: string; account_name: string; mode: Mode; industry: Industry; two_factor_auth: boolean; recovery: string | null; bucket_name: string; bucket_color: string; institution_name: string; password: string }
 export type Mode = "Secure" | "SuperSecure" | "LegacySecure" | "SSO"
 export type RetrievedAccount = { RetrievedSecretAccount: RetrievedSecretAccount }

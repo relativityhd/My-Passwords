@@ -21,14 +21,20 @@ async fn main() {
         collect_types![
             handlers::accounts::add_acc,
             handlers::accounts::retrieve_account,
+            handlers::accounts::get_user_accounts,
+            handlers::buckets::create_bucket,
+            handlers::buckets::recolor_bucket,
+            handlers::buckets::rename_bucket,
+            handlers::buckets::delete_bucket,
+            handlers::buckets::get_user_buckets,
         ],
         "../src/lib/bindings.ts",
     )
-    .unwrap();
+    .expect("Type export to just work...");
 
     let db = database::establish_connection()
         .await
-        .expect("Failed to connect to database");
+        .expect("a reachable database");
 
     let userid = 1;
 
@@ -70,6 +76,12 @@ async fn main() {
         .invoke_handler(tauri::generate_handler![
             handlers::accounts::add_acc,
             handlers::accounts::retrieve_account,
+            handlers::accounts::get_user_accounts,
+            handlers::buckets::create_bucket,
+            handlers::buckets::recolor_bucket,
+            handlers::buckets::rename_bucket,
+            handlers::buckets::delete_bucket,
+            handlers::buckets::get_user_buckets,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

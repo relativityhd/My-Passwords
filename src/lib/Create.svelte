@@ -49,7 +49,7 @@
 		/>
 		<TextInput
 			bind:value={accountName}
-			labelText="Account Name"
+			labelText="Account/User Name"
 			placeholder="E.g. the email or username of that account"
 			required
 		/>
