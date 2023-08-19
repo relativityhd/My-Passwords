@@ -10,21 +10,25 @@ edition = "2021"
 rust-version = "1.60"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace]
+members = [".", "entities", "migration"]
 
 [build-dependencies]
 tauri-build = { version = "1.4.0", features = [] }
 
 [dependencies]
+entities = { path = "entities" }
+migration = { path = "migration" } # depends on your needs
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 tauri = { version = "1.4.0", features = [] }
-sea-orm = { version = "0.11", features = [
-  "sqlx-sqlite",
+sea-orm = { version = "0.12", features = [
+  "sqlx-postgres",
   "runtime-tokio-rustls",
   "macros",
   "with-chrono",
 ] }
-sea-orm-migration = "0.11"
+sea-orm-migration = "0.12"
 tokio = { version = "1", features = ["full"] }
 chrono = { version = "0.4", features = ["serde"] }
 thiserror = "1.0"

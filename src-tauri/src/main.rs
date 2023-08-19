@@ -4,12 +4,11 @@
 
 mod algorithm;
 mod database;
-mod entities;
 mod handlers;
-mod migrator;
 mod types;
 
 use entities::{prelude::*, *};
+use handlers::*;
 use sea_orm::*;
 use specta::collect_types;
 use std::sync::Mutex;
@@ -19,14 +18,15 @@ use tauri_specta::ts;
 async fn main() {
     ts::export(
         collect_types![
-            handlers::accounts::add_acc,
-            handlers::accounts::retrieve_account,
-            handlers::accounts::get_user_accounts,
-            handlers::buckets::create_bucket,
-            handlers::buckets::recolor_bucket,
-            handlers::buckets::rename_bucket,
-            handlers::buckets::delete_bucket,
-            handlers::buckets::get_user_buckets,
+            add_secure_account,
+            retrieve_secure_account,
+            search_user_accounts,
+            list_user_accounts,
+            create_bucket,
+            recolor_bucket,
+            rename_bucket,
+            delete_bucket,
+            get_user_buckets,
         ],
         "../src/lib/bindings.ts",
     )
@@ -39,7 +39,7 @@ async fn main() {
     let userid = 1;
 
     let user_res = User::insert(user::ActiveModel {
-        id: Set(userid),
+        id: ActiveValue::Set(userid),
         username: Set("dev".to_owned()),
         pass: Set("dev".to_owned()),
         ..Default::default()
@@ -74,14 +74,15 @@ async fn main() {
         .manage(db)
         .manage(Mutex::new(main_user))
         .invoke_handler(tauri::generate_handler![
-            handlers::accounts::add_acc,
-            handlers::accounts::retrieve_account,
-            handlers::accounts::get_user_accounts,
-            handlers::buckets::create_bucket,
-            handlers::buckets::recolor_bucket,
-            handlers::buckets::rename_bucket,
-            handlers::buckets::delete_bucket,
-            handlers::buckets::get_user_buckets,
+            add_secure_account,
+            retrieve_secure_account,
+            search_user_accounts,
+            list_user_accounts,
+            create_bucket,
+            recolor_bucket,
+            rename_bucket,
+            delete_bucket,
+            get_user_buckets,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

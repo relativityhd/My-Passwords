@@ -1,4 +1,4 @@
-import { getUserBuckets } from '$lib/bindings';
+import { getUserBuckets, listUserAccounts } from '$lib/bindings';
 import { error } from '@sveltejs/kit';
 
 export async function load() {
@@ -6,7 +6,7 @@ export async function load() {
 		console.log(err);
 		throw error(500, err);
 	});
-	const accounts = await getUserAccounts().catch((err) => {
+	const accounts = await listUserAccounts().catch((err) => {
 		console.log(err);
 		throw error(500, err);
 	});

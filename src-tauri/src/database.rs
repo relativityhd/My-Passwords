@@ -1,15 +1,15 @@
 use sea_orm::{ConnectOptions, Database, DatabaseConnection, DbErr};
 use sea_orm_migration::prelude::*;
 
-use super::migrator;
+use migration::{Migrator, MigratorTrait};
 
 pub async fn establish_connection() -> Result<DatabaseConnection, DbErr> {
-    let db_url = "sqlite:///home/tobias/.my-passwords.db?mode=rwc";
+    let db_url = "postgres://tobias:tobias@localhost/my_passwords";
     let options = ConnectOptions::new(db_url.to_owned());
     let db = Database::connect(options).await?;
 
     let schema_manager = SchemaManager::new(&db);
-    let refresh = migrator::Migrator::up(&db, None).await;
+    let refresh = Migrator::up(&db, None).await;
     if refresh.is_err() {
         println!("Error refreshing database: {:?}", refresh.err());
     }

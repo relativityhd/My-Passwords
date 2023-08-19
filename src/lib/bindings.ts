@@ -10,12 +10,20 @@ declare global {
 // Function avoids 'window not defined' in SSR
 const invoke = () => window.__TAURI_INVOKE__;
 
-export function addAcc(institutionName: string, accountName: string, industry: Industry, bucketId: number | null) {
-    return invoke()<number>("add_acc", { institutionName,accountName,industry,bucketId })
+export function addSecureAccount(institutionName: string, accountName: string, industry: Industry, bucketId: number | null) {
+    return invoke()<number>("add_secure_account", { institutionName,accountName,industry,bucketId })
 }
 
-export function retrieveAccount(accountId: number) {
-    return invoke()<RetrievedAccount>("retrieve_account", { accountId })
+export function retrieveSecureAccount(accountId: number) {
+    return invoke()<UnlockedSecretAccount>("retrieve_secure_account", { accountId })
+}
+
+export function searchUserAccounts() {
+    return invoke()<null>("search_user_accounts")
+}
+
+export function listUserAccounts() {
+    return invoke()<Account[]>("list_user_accounts")
 }
 
 export function createBucket(bucketName: string, bucketColor: string) {
@@ -39,7 +47,6 @@ export function getUserBuckets() {
 }
 
 export type RetrievedBucket = { id: number; name: string; color: string }
-export type RetrievedSecretAccount = { id: number; created_at: string; account_name: string; mode: Mode; industry: Industry; two_factor_auth: boolean; recovery: string | null; bucket_name: string; bucket_color: string; institution_name: string; password: string }
-export type Mode = "Secure" | "SuperSecure" | "LegacySecure" | "SSO"
-export type RetrievedAccount = { RetrievedSecretAccount: RetrievedSecretAccount }
+export type UnlockedSecretAccount = { id: number; created_at: string; account_name: string; industry: Industry; two_factor_auth: boolean; recovery: string | null; bucket_name: string; bucket_color: string; institution_name: string; password: string }
 export type Industry = "Tech" | "Games" | "Social" | "Finance" | "Shopping" | "Science" | "Other"
+export type Account = { id: number; created_at: string; account_name: string; bucket_name: string; bucket_color: string; institution_name: string }

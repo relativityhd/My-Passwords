@@ -1,17 +1,13 @@
-import type { RetrievedSecretAccount } from '$lib/bindings.js';
-import { retrieveAccount } from '$lib/bindings.js';
+import type { UnlockedSecretAccount } from '$lib/bindings.js';
+import { retrieveSecureAccount } from '$lib/bindings.js';
 import { error } from '@sveltejs/kit';
 
-export function load({ params }): Promise<RetrievedSecretAccount> {
+export function load({ params }): Promise<UnlockedSecretAccount> {
 	console.log(params.id);
-	const retrievedAccPromise = retrieveAccount(parseInt(params.id))
-		.then((retrievedAcc) => {
-			return retrievedAcc.RetrievedSecretAccount;
-		})
-		.catch((err) => {
-			console.log(err);
-			throw error(500, err);
-		});
+	const retrievedAccPromise = retrieveSecureAccount(parseInt(params.id)).catch((err) => {
+		console.log(err);
+		throw error(500, err);
+	});
 
 	return retrievedAccPromise;
 }

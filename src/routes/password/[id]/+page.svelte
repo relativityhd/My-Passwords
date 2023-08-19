@@ -11,6 +11,7 @@
 	import { Tile } from 'carbon-components-svelte';
 	import { Tag } from 'carbon-components-svelte';
 	import { Button } from 'carbon-components-svelte';
+	import { FaceActivated } from 'carbon-icons-svelte';
 	import TrashCan from 'carbon-icons-svelte/lib/TrashCan.svelte';
 	import { DateTime } from 'luxon';
 
@@ -42,9 +43,9 @@
 			<h1 style="display: inline;">{data.password}</h1>
 			<CopyButton style="display: inline;" text={data.password} feedback="Copied to clipboard" />
 			<br />
-			{#if data.mode === 'LegacySecure'}
+			{#if false}
 				<Tag type="magenta">Legacy Secure</Tag>
-			{:else if data.mode === 'SuperSecure'}
+			{:else if false}
 				<Tag type="green">Super Secure</Tag>
 			{:else}
 				<Tag type="teal">Secure</Tag>

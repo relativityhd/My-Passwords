@@ -1,4 +1,4 @@
-use crate::entities::{bucket, user};
+use entities::{bucket, user};
 use once_cell::sync::Lazy;
 use regex::Regex;
 use sea_orm::*;

@@ -16,3 +16,24 @@ Roadmap:
 - Passwort mit freier Eingabe
 - Sanity Checks: Überprüfen, ob Acc / Bucket / Institution zum Benutzer gehört
 - Add indicies to DB
+
+## Database Stuff
+
+Start DB:
+
+```sh
+sudo /etc/init.d/postgresql start 12
+```
+
+Migrate:
+
+```sh
+sea-orm-cli migrate up -u postgres://tobias:tobias@localhost/my_passwords
+sea-orm-cli migrate down -u postgres://tobias:tobias@localhost/my_passwords
+```
+
+Generate Entities:
+
+```sh
+sea-orm-cli generate entity -l -u postgres://tobias:tobias@localhost/my_passwords -o entity/src
+```
