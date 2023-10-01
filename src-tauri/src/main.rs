@@ -48,8 +48,15 @@ async fn main() {
     .await;
     match user_res {
         Ok(_) => println!("User inserted"),
-        Err(e) => println!("Error inserting user: {:?}", e),
+        Err(e) => match e.sql_err() {
+            Some(SqlErr::UniqueConstraintViolation(_)) => {
+                println!("User already exists, won't insert again")
+            }
+            _ => println!("Error inserting user: {:?}", e),
+        },
     }
+
+    // Double check if inserted correctly
     let main_user = User::find_by_id(userid)
         .one(&db)
         .await
@@ -67,7 +74,12 @@ async fn main() {
     .await;
     match bucket_res {
         Ok(_) => println!("Bucket inserted"),
-        Err(e) => println!("Error inserting bucket: {:?}", e),
+        Err(e) => match e.sql_err() {
+            Some(SqlErr::UniqueConstraintViolation(_)) => {
+                println!("Bucket already exists, won't insert again")
+            }
+            _ => println!("Error inserting bucket: {:?}", e),
+        },
     }
 
     tauri::Builder::default()

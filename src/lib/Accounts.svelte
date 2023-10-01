@@ -6,13 +6,13 @@
 	import Add from 'carbon-icons-svelte/lib/Send.svelte';
 	import { DataTable } from 'carbon-components-svelte';
 
-	import type { RetrievedSecretAccount } from '$lib/bindings';
+	import type { Account } from '$lib/bindings';
 
 	let colors = ['red', 'blue', 'green', 'yellow', 'purple', 'cyan', 'magenta', 'orange'];
 	let bucketName = '';
 	let color = colors[Math.floor(Math.random() * colors.length)];
 
-	export let accounts: RetrievedSecretAccount[] = [];
+	export let accounts: Account[] = [];
 </script>
 
 <DataTable

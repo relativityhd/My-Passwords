@@ -39,6 +39,7 @@ pub async fn list_user_accounts(
         .column_as(institution::Column::Name, "institution_name")
         .filter(account::Column::UserId.eq(user_id))
         .join(JoinType::LeftJoin, account::Relation::Bucket.def())
+        .join(JoinType::LeftJoin, account::Relation::Institution.def())
         .into_model::<Account>()
         .all(db.inner())
         .await?;

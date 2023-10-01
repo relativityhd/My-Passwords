@@ -88,7 +88,7 @@ pub async fn retrieve_secure_account(
         .column_as(institution::Column::Name, "institution_name")
         .join(JoinType::LeftJoin, account::Relation::Bucket.def())
         .join(JoinType::LeftJoin, account::Relation::Institution.def())
-        .join(JoinType::RightJoin, secure_account::Relation::Account.def())
+        .join(JoinType::RightJoin, account::Relation::SecureAccount.def())
         .into_model::<DbEnrichedSecretAccount>()
         .one(db.inner())
         .await?
