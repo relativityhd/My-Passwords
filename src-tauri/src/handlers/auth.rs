@@ -14,13 +14,7 @@ pub enum AuthError {
 #[derive(Serialize)]
 struct Credentials<'a> {
     email: &'a str,
-    password: &'a str,
-}
-
-#[derive(Serialize)]
-struct NewUser<'a> {
     username: &'a str,
-    email: &'a str,
     password: &'a str,
 }
 
@@ -42,7 +36,7 @@ pub async fn is_authenticated(db: tauri::State<'_, Surreal<Client>>) -> Result<b
 #[specta::specta]
 pub async fn signin(
     db: tauri::State<'_, Surreal<Client>>,
-    email: &str,
+    identity: &str,
     password: &str,
 ) -> Result<(), AuthError> {
     let token = db
@@ -51,7 +45,8 @@ pub async fn signin(
             database: "dev",
             scope: "user",
             params: Credentials {
-                email: &email,
+                username: &identity,
+                email: &identity,
                 password: &password,
             },
         })
@@ -74,7 +69,7 @@ pub async fn signup(
             namespace: "accounts",
             database: "dev",
             scope: "user",
-            params: NewUser {
+            params: Credentials {
                 username: &username,
                 email: &email,
                 password: &password,

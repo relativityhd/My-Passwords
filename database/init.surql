@@ -18,12 +18,13 @@ DEFINE FIELD email ON user TYPE string
 DEFINE FIELD password ON user TYPE string;
 
 DEFINE INDEX email ON user FIELDS email UNIQUE;
+DEFINE INDEX username ON user FIELDS username UNIQUE;
 
 DEFINE SCOPE user SESSION 1d
   SIGNIN (
     SELECT *
     FROM user
-    WHERE email = $email
+    WHERE (email = $email or username = $username)
       AND crypto::argon2::compare(password, $password)
   )
   SIGNUP (

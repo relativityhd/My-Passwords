@@ -6,13 +6,7 @@
 	} from '@material/material-color-utilities';
 
 	// Get the theme from a hex color
-	const theme = themeFromSourceColor(argbFromHex('#f82506'), [
-		{
-			name: 'custom-1',
-			value: argbFromHex('#ff0000'),
-			blend: true
-		}
-	]);
+	const theme = themeFromSourceColor(argbFromHex('#161900'));
 
 	// Print out the theme as JSON
 	console.log(JSON.stringify(theme, null, 2));
@@ -22,11 +16,11 @@
 
 	console.log(systemDark);
 	// Apply the theme to the body by updating custom properties for material tokens
-	// applyTheme(theme, { target: document.body, dark: systemDark });
+	applyTheme(theme, { target: document.body, dark: systemDark });
 </script>
 
 <svelte:head>
-	<link href="https://fonts.googleapis.com/css?family=Gelasio" rel="stylesheet" />
+	<link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet" />
 </svelte:head>
 <slot />
 
@@ -37,5 +31,7 @@
 	}
 	body {
 		font-family: Montserrat;
+		background: var(--md-sys-color-background);
+		color: var(--md-sys-color-on-background);
 	}
 </style>

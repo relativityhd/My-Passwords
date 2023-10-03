@@ -5,39 +5,65 @@
 	import { signin } from '$lib/bindings';
 	import { goto } from '$app/navigation';
 
+	let formElement: HTMLFormElement;
+	let isValid = false;
+
+	function onChange(e: Event) {
+		isValid = formElement.checkValidity();
+	}
+
 	async function handleSubmit(e: SubmitEvent) {
 		const formData = new FormData(e.target as HTMLFormElement);
-		let email = formData.get('email') as string;
+		let identifier = formData.get('identifier') as string;
 		let password = formData.get('password') as string;
-		console.log(formData, email, password);
-		await signin(email, password).catch((err) => {
+		await signin(identifier, password).catch((err) => {
 			console.log(err);
+			throw err;
 		});
-		console.log('go to home');
 		goto('/');
 	}
 </script>
 
-<form on:submit|preventDefault={handleSubmit}>
-	<div class="row">
-		<md-filled-text-field id="email" label="Email" type="email" value="" />
-		<md-filled-text-field id="password" label="Password" type="password" value="" />
+<h1>Signin</h1>
+
+<form on:submit|preventDefault={handleSubmit} bind:this={formElement}>
+	<div class="inputs">
+		<md-filled-text-field
+			name="identifier"
+			label="Email or Name"
+			required
+			on:change={onChange}
+			on:input={onChange}
+		/>
+		<md-filled-text-field
+			name="password"
+			label="Password"
+			type="password"
+			required
+			on:change={onChange}
+			on:input={onChange}
+		/>
 	</div>
-	<div class="row buttons">
-		<md-filled-button>Sign In</md-filled-button>
+	<div class="buttons">
+		<md-filled-button disabled={!isValid}>Sign In</md-filled-button>
 	</div>
 	<p>No account yet? <a href="/signup">Signup</a></p>
 </form>
 
 <style scoped>
-	.row {
+	.inputs {
 		align-items: flex-start;
+		flex-direction: column;
 		display: flex;
 		flex-wrap: wrap;
 		gap: 16px;
 	}
+
 	.buttons {
+		align-items: flex-start;
+		display: flex;
+		flex-wrap: wrap;
+		padding: 16px 0;
 		justify-content: flex-end;
-		padding: 16px;
 	}
 </style>
