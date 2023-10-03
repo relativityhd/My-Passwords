@@ -1,12 +1,14 @@
 <script lang="ts">
-	import { Grid, Row, Column } from 'carbon-components-svelte';
+	/* import { Grid, Row, Column } from 'carbon-components-svelte';
 	import Create from '$lib/Create.svelte';
 	import Buckets from '$lib/Buckets.svelte';
-	import Accounts from '$lib/Accounts.svelte';
+	import Accounts from '$lib/Accounts.svelte'; */
 
-	export let data;
+	//export let data;
 </script>
 
+<h1>Main Page</h1>
+<!--
 <Grid>
 	<Row>
 		<Column sm={4}>
@@ -24,3 +26,4 @@
 		</Column>
 	</Row>
 </Grid>
+ -->

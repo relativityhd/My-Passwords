@@ -16,13 +16,11 @@
 		"@sveltejs/adapter-auto": "^2.0.0",
 		"@sveltejs/adapter-static": "^1.0.0-next.50",
 		"@sveltejs/kit": "^1.20.4",
+		"@tauri-apps/api": "^1.5.0",
 		"@tauri-apps/cli": "^1.4.0",
 		"@types/luxon": "^3.3.1",
 		"@typescript-eslint/eslint-plugin": "^5.45.0",
 		"@typescript-eslint/parser": "^5.45.0",
-		"carbon-components-svelte": "^0.78.0",
-		"carbon-icons-svelte": "^12.1.0",
-		"carbon-preprocess-svelte": "^0.10.0",
 		"eslint": "^8.28.0",
 		"eslint-config-prettier": "^8.5.0",
 		"eslint-plugin-import": "^2.28.0",
@@ -41,7 +39,8 @@
 		"node": "18.17.0"
 	},
 	"dependencies": {
-		"@tauri-apps/api": "^1.4.0",
+		"@material/material-color-utilities": "^0.2.7",
+		"@material/web": "^1.0.0",
 		"luxon": "^3.3.0"
 	}
 }

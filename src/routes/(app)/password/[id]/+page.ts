@@ -1,4 +1,4 @@
-import type { UnlockedSecretAccount } from '$lib/bindings.js';
+/* import type { UnlockedSecretAccount } from '$lib/bindings.js';
 import { retrieveSecureAccount } from '$lib/bindings.js';
 import { error } from '@sveltejs/kit';
 
@@ -13,3 +13,4 @@ export function load({ params }): Promise<UnlockedSecretAccount> {
 }
 
 export const prerender = false;
+ */

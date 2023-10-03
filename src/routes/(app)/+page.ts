@@ -1,4 +1,4 @@
-import { getUserBuckets, listUserAccounts } from '$lib/bindings';
+/* import { getUserBuckets, listUserAccounts } from '$lib/bindings';
 import { error } from '@sveltejs/kit';
 
 export async function load() {
@@ -12,3 +12,4 @@ export async function load() {
 	});
 	return { buckets, accounts };
 }
+ */

@@ -3,22 +3,23 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod algorithm;
-mod database;
 mod handlers;
 mod types;
 
-use entities::{prelude::*, *};
 use handlers::*;
-use sea_orm::*;
 use specta::collect_types;
-use std::sync::Mutex;
+use surrealdb::engine::remote::ws::Ws;
+use surrealdb::Surreal;
 use tauri_specta::ts;
 
 #[tokio::main]
 async fn main() {
     ts::export(
         collect_types![
-            add_secure_account,
+            signin,
+            signup,
+            is_authenticated,
+            /* add_secure_account,
             retrieve_secure_account,
             search_user_accounts,
             list_user_accounts,
@@ -26,55 +27,27 @@ async fn main() {
             recolor_bucket,
             rename_bucket,
             delete_bucket,
-            get_user_buckets,
+            get_user_buckets, */
         ],
         "../src/lib/bindings.ts",
     )
     .expect("Type export to just work...");
 
-    let db = database::establish_connection()
+    let db = Surreal::new::<Ws>("127.0.0.1:8000")
         .await
-        .expect("a reachable database");
-
-    let userid = 1;
-
-    let user_res = User::insert(user::ActiveModel {
-        id: ActiveValue::Set(userid),
-        username: Set("dev".to_owned()),
-        pass: Set("dev".to_owned()),
-        ..Default::default()
-    })
-    .exec(&db)
-    .await;
-    match user_res {
-        Ok(_) => println!("User inserted"),
-        Err(e) => println!("Error inserting user: {:?}", e),
-    }
-    let main_user = User::find_by_id(userid)
-        .one(&db)
+        .expect("Failed to connect to database");
+    db.use_ns("accounts")
+        .use_db("dev")
         .await
-        .expect("Failed to find user")
-        .unwrap();
-
-    let bucket_res = Bucket::insert(bucket::ActiveModel {
-        id: Set(1),
-        name: Set("Main".to_owned()),
-        color: Set("#000000".to_owned()),
-        user_id: Set(main_user.id),
-        ..Default::default()
-    })
-    .exec(&db)
-    .await;
-    match bucket_res {
-        Ok(_) => println!("Bucket inserted"),
-        Err(e) => println!("Error inserting bucket: {:?}", e),
-    }
+        .expect("Failed to use namespace");
 
     tauri::Builder::default()
         .manage(db)
-        .manage(Mutex::new(main_user))
         .invoke_handler(tauri::generate_handler![
-            add_secure_account,
+            signin,
+            signup,
+            is_authenticated,
+            /* add_secure_account,
             retrieve_secure_account,
             search_user_accounts,
             list_user_accounts,
@@ -82,7 +55,7 @@ async fn main() {
             recolor_bucket,
             rename_bucket,
             delete_bucket,
-            get_user_buckets,
+            get_user_buckets, */
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

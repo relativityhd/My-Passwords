@@ -10,43 +10,16 @@ declare global {
 // Function avoids 'window not defined' in SSR
 const invoke = () => window.__TAURI_INVOKE__;
 
-export function addSecureAccount(institutionName: string, accountName: string, industry: Industry, bucketId: number | null) {
-    return invoke()<number>("add_secure_account", { institutionName,accountName,industry,bucketId })
+export function signin(email: string, password: string) {
+    return invoke()<null>("signin", { email,password })
 }
 
-export function retrieveSecureAccount(accountId: number) {
-    return invoke()<UnlockedSecretAccount>("retrieve_secure_account", { accountId })
+export function signup(email: string, username: string, password: string) {
+    return invoke()<null>("signup", { email,username,password })
 }
 
-export function searchUserAccounts() {
-    return invoke()<null>("search_user_accounts")
+export function isAuthenticated() {
+    return invoke()<boolean>("is_authenticated")
 }
 
-export function listUserAccounts() {
-    return invoke()<Account[]>("list_user_accounts")
-}
 
-export function createBucket(bucketName: string, bucketColor: string) {
-    return invoke()<number>("create_bucket", { bucketName,bucketColor })
-}
-
-export function recolorBucket(bucketId: number, bucketColor: string) {
-    return invoke()<number>("recolor_bucket", { bucketId,bucketColor })
-}
-
-export function renameBucket(bucketId: number, bucketName: string) {
-    return invoke()<number>("rename_bucket", { bucketId,bucketName })
-}
-
-export function deleteBucket(bucketId: number) {
-    return invoke()<number>("delete_bucket", { bucketId })
-}
-
-export function getUserBuckets() {
-    return invoke()<RetrievedBucket[]>("get_user_buckets")
-}
-
-export type RetrievedBucket = { id: number; name: string; color: string }
-export type UnlockedSecretAccount = { id: number; created_at: string; account_name: string; industry: Industry; two_factor_auth: boolean; recovery: string | null; bucket_name: string; bucket_color: string; institution_name: string; password: string }
-export type Industry = "Tech" | "Games" | "Social" | "Finance" | "Shopping" | "Science" | "Other"
-export type Account = { id: number; created_at: string; account_name: string; bucket_name: string; bucket_color: string; institution_name: string }
