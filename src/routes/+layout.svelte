@@ -20,8 +20,9 @@
 	// Check if the user has dark mode turned on
 	const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
+	console.log(systemDark);
 	// Apply the theme to the body by updating custom properties for material tokens
-	applyTheme(theme, { target: document.body, dark: systemDark });
+	// applyTheme(theme, { target: document.body, dark: systemDark });
 </script>
 
 <svelte:head>

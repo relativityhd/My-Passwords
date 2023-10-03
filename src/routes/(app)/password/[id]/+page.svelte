@@ -1,5 +1,5 @@
 <script>
-	import { CopyButton } from 'carbon-components-svelte';
+	/* 	import { CopyButton } from 'carbon-components-svelte';
 	import { Grid, Row, Column } from 'carbon-components-svelte';
 	import { Breadcrumb, BreadcrumbItem } from 'carbon-components-svelte';
 	import {
@@ -15,7 +15,7 @@
 	import TrashCan from 'carbon-icons-svelte/lib/TrashCan.svelte';
 	import { DateTime } from 'luxon';
 
-	export let data;
+	export let data; */
 </script>
 
 <!--
@@ -26,7 +26,7 @@
   xlg=16
   max=16
 -->
-
+<!--
 <Grid>
 	<Row>
 		<Column sm={4}>
@@ -83,3 +83,4 @@
 		</Column>
 	</Row>
 </Grid>
+ -->
