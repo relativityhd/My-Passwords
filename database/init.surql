@@ -2,6 +2,8 @@
 Init script for setting up the SurrealDB database.
 */
 
+// TODO: Define Indices for all tables, depending on whats needed
+
 -- Namespace and Database
 DEFINE NAMESPACE accounts;
 USE NAMESPACE accounts;
@@ -20,7 +22,7 @@ DEFINE FIELD password ON user TYPE string;
 DEFINE INDEX email ON user FIELDS email UNIQUE;
 DEFINE INDEX username ON user FIELDS username UNIQUE;
 
-DEFINE SCOPE user SESSION 1d
+DEFINE SCOPE user SESSION 4w
   SIGNIN (
     SELECT *
     FROM user
@@ -81,7 +83,7 @@ DEFINE FIELD institution ON account TYPE record(institution);
 
 -- Table Secure Accounts
 DEFINE TABLE secure_account SCHEMAFULL
-  PERMISSIONS FOR select, create, update, delete WHERE user = $auth.id;
+  PERMISSIONS FOR select, create, update, delete WHERE account.user = $auth.id;
 
 DEFINE FIELD industry ON secure_account TYPE int;
 
@@ -89,7 +91,7 @@ DEFINE FIELD account ON secure_account TYPE record(account);
 
 -- Table Super Secure Accounts
 DEFINE TABLE super_secure_account SCHEMAFULL
-  PERMISSIONS FOR select, create, update, delete WHERE user = $auth.id;
+  PERMISSIONS FOR select, create, update, delete WHERE account.user = $auth.id;
 
 DEFINE FIELD pin ON super_secure_account TYPE int;
 DEFINE FIELD min_length ON super_secure_account TYPE int;
@@ -100,7 +102,7 @@ DEFINE FIELD account ON super_secure_account TYPE record(account);
 
 -- Table SSO Accounts
 DEFINE TABLE sso_account SCHEMAFULL
-  PERMISSIONS FOR select, create, update, delete WHERE user = $auth.id;
+  PERMISSIONS FOR select, create, update, delete WHERE account.user = $auth.id;
 
 DEFINE FIELD account ON sso_account TYPE record(account);
 DEFINE FIELD sso ON sso_account TYPE record(institution);

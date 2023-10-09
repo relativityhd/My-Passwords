@@ -1,22 +1,22 @@
-use crate::types::InvalidModeError;
-use sea_orm::*;
+use crate::handlers::auth::AuthError;
 use serde::Serialize;
+use surrealdb::sql::Thing;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum AccountError {
-    #[error("Database error from SeaORM: {0:?}")]
-    Db(#[from] DbErr),
+    #[error("Database error: {0:?}")]
+    Db(#[from] surrealdb::Error),
     #[error("No account found with id {0}")]
-    NotFound(i32),
+    NotFound(Thing),
     #[error("The account doesn't belong to the current user")]
     NotAuthorized,
     #[error("Database is probably corrupted: No Bucket found with id {0}")]
-    CorruptedBucket(i32),
+    CorruptedBucket(Thing),
     #[error("Database is probably corrupted: No Institution found with id {0}")]
-    CorruptedInstitution(i32),
-    #[error("Database is probably corrupted: {0:?}")]
-    CorruptedMode(#[from] InvalidModeError),
+    CorruptedInstitution(Thing),
+    #[error("Authentification error: {0:?}")]
+    Auth(#[from] AuthError),
 }
 
 impl Serialize for AccountError {

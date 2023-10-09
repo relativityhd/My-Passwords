@@ -1,7 +1,7 @@
 <script lang="ts">
-	import '@material/web/button/filled-button.js';
 	import '@material/web/button/filled-button';
 	import '@material/web/textfield/filled-text-field';
+	import '@material/web/checkbox/checkbox';
 	import { signin } from '$lib/bindings';
 	import { goto } from '$app/navigation';
 
@@ -16,7 +16,8 @@
 		const formData = new FormData(e.target as HTMLFormElement);
 		let identifier = formData.get('identifier') as string;
 		let password = formData.get('password') as string;
-		await signin(identifier, password).catch((err) => {
+		let remember = (formData.get('remember') as string) === 'on';
+		await signin(identifier, password, remember).catch((err) => {
 			console.log(err);
 			throw err;
 		});
@@ -24,7 +25,7 @@
 	}
 </script>
 
-<h1>Signin</h1>
+<h1>Sign In</h1>
 
 <form on:submit|preventDefault={handleSubmit} bind:this={formElement}>
 	<div class="inputs">
@@ -44,10 +45,14 @@
 			on:input={onChange}
 		/>
 	</div>
+	<div class="remember-label">
+		<label for="remember"> Remember me </label>
+		<md-checkbox id="remember" name="remember" />
+	</div>
 	<div class="buttons">
 		<md-filled-button disabled={!isValid}>Sign In</md-filled-button>
 	</div>
-	<p>No account yet? <a href="/signup">Signup</a></p>
+	<p>No account yet? <a href="/signup">Sign Up</a></p>
 </form>
 
 <style scoped>
@@ -57,6 +62,15 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 16px;
+	}
+
+	.remember-label {
+		align-items: center;
+		display: flex;
+		flex-wrap: wrap;
+		padding: 16px 0;
+		gap: 16px;
+		justify-content: flex-end;
 	}
 
 	.buttons {

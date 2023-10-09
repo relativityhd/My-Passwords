@@ -12,7 +12,14 @@
   },
   "tauri": {
     "allowlist": {
-      "all": false
+      "all": false,
+      "fs": {
+        "all": true,
+        "scope": ["$APPDATA/databases/*"]
+      },
+      "clipboard": {
+        "all": true
+      }
     },
     "bundle": {
       "active": true,

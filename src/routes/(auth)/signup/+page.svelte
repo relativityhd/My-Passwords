@@ -17,7 +17,8 @@
 		let email = formData.get('email') as string;
 		let username = formData.get('username') as string;
 		let password = formData.get('password') as string;
-		await signup(email, username, password).catch((err) => {
+		let remember = (formData.get('remember') as string) === 'on';
+		await signup(email, username, password, remember).catch((err) => {
 			console.log(err);
 		});
 		console.log('go to home');
@@ -25,7 +26,7 @@
 	}
 </script>
 
-<h1>Signup</h1>
+<h1>Sign Up</h1>
 
 <form on:submit|preventDefault={handleSubmit} bind:this={formElement}>
 	<div class="inputs">
@@ -54,10 +55,16 @@
 			on:input={onChange}
 		/>
 	</div>
+
+	<div class="remember-label">
+		<label for="remember"> Remember me </label>
+		<md-checkbox id="remember" name="remember" />
+	</div>
+
 	<div class="buttons">
 		<md-filled-button disabled={!isValid}>Sign Up</md-filled-button>
 	</div>
-	<p>Already have an account?<br /> <a href="/signin">Signin</a></p>
+	<p>Already have an account?<br /> <a href="/signin">Sign In</a></p>
 </form>
 
 <style scoped>
@@ -67,6 +74,15 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 16px;
+	}
+
+	.remember-label {
+		align-items: center;
+		display: flex;
+		flex-wrap: wrap;
+		padding: 16px 0;
+		gap: 16px;
+		justify-content: flex-end;
 	}
 
 	.buttons {

@@ -6,7 +6,7 @@
 	} from '@material/material-color-utilities';
 
 	// Get the theme from a hex color
-	const theme = themeFromSourceColor(argbFromHex('#161900'));
+	const theme = themeFromSourceColor(argbFromHex('#0054a4'));
 
 	// Print out the theme as JSON
 	console.log(JSON.stringify(theme, null, 2));
@@ -20,17 +20,22 @@
 </script>
 
 <svelte:head>
-	<link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet" />
+	<link href="https://fonts.googleapis.com/css?family=DM+Serif+Display" rel="stylesheet" />
+	<link
+		href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+		rel="stylesheet"
+	/>
 </svelte:head>
+
 <slot />
 
 <style global>
 	:root {
-		--md-ref-typeface-brand: 'Montserrat';
-		--md-ref-typeface-plain: 'Montserrat';
+		--md-ref-typeface-brand: 'DM Serif Display';
+		--md-ref-typeface-plain: 'DM Serif Display';
 	}
 	body {
-		font-family: Montserrat;
+		font-family: var(--md-ref-typeface-brand);
 		background: var(--md-sys-color-background);
 		color: var(--md-sys-color-on-background);
 	}

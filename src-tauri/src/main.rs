@@ -16,9 +16,12 @@ use tauri_specta::ts;
 async fn main() {
     ts::export(
         collect_types![
-            signin,
-            signup,
-            is_authenticated,
+            auth::signin,
+            auth::signup,
+            auth::signout,
+            auth::is_authenticated,
+            accounts::secure::live_input,
+            accounts::secure::create,
             /* add_secure_account,
             retrieve_secure_account,
             search_user_accounts,
@@ -44,9 +47,12 @@ async fn main() {
     tauri::Builder::default()
         .manage(db)
         .invoke_handler(tauri::generate_handler![
-            signin,
-            signup,
-            is_authenticated,
+            auth::signin,
+            auth::signup,
+            auth::signout,
+            auth::is_authenticated,
+            accounts::secure::live_input,
+            accounts::secure::create,
             /* add_secure_account,
             retrieve_secure_account,
             search_user_accounts,

@@ -15,6 +15,34 @@ pub enum Industry {
     Other,    // -> &
 }
 
+impl From<i32> for Industry {
+    fn from(value: i32) -> Self {
+        match value {
+            1 => Industry::Tech,
+            2 => Industry::Games,
+            3 => Industry::Social,
+            4 => Industry::Finance,
+            5 => Industry::Shopping,
+            6 => Industry::Science,
+            _ => Industry::Other,
+        }
+    }
+}
+
+impl Into<i32> for Industry {
+    fn into(self) -> i32 {
+        match self {
+            Industry::Tech => 1,
+            Industry::Games => 2,
+            Industry::Social => 3,
+            Industry::Finance => 4,
+            Industry::Shopping => 5,
+            Industry::Science => 6,
+            Industry::Other => 0,
+        }
+    }
+}
+
 impl FromStr for Industry {
     type Err = Infallible;
 
