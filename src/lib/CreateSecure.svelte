@@ -49,6 +49,7 @@
 		}
 		let newacc = await create(institution, website, account, recovery, industry, bucket);
 		console.log(newacc);
+		goto(`/password/${newacc}`);
 		// goto(`/password/${newacc}`);
 	}
 	const buckets = ['Bucket 1', 'Bucket 2', 'Bucket 3'];

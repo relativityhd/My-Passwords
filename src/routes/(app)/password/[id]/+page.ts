@@ -14,3 +14,10 @@ export function load({ params }): Promise<UnlockedSecretAccount> {
 
 export const prerender = false;
  */
+
+import { get } from '$lib/bindings';
+
+export async function load({ params }) {
+	const account = await get(params.id);
+	return { account };
+}

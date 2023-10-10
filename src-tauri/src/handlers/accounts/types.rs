@@ -1,6 +1,6 @@
 use crate::handlers::auth::AuthError;
 use serde::Serialize;
-use surrealdb::sql::Thing;
+use surrealdb::sql::{Id, Thing};
 use thiserror::Error;
 
 #[derive(Debug, Error)]

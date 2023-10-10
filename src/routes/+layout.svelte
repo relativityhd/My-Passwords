@@ -12,7 +12,7 @@
 	console.log(JSON.stringify(theme, null, 2));
 
 	// Check if the user has dark mode turned on
-	const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+	const systemDark = false; //window.matchMedia('(prefers-color-scheme: dark)').matches;
 
 	console.log(systemDark);
 	// Apply the theme to the body by updating custom properties for material tokens
