@@ -1,13 +1,12 @@
+use super::types::AccountError;
 use crate::algorithm::gen_pw;
+use crate::handlers::auth::AuthError;
 use crate::types::Industry;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use surrealdb::engine::remote::ws::Client;
 use surrealdb::sql::Thing;
 use surrealdb::Surreal;
-
-use super::types::AccountError;
-use crate::handlers::auth::AuthError;
 
 #[derive(Debug, Deserialize)]
 struct Record {
@@ -45,7 +44,7 @@ struct NewAccount {
 
 #[derive(Debug, Serialize)]
 struct NewSecureAccount {
-    industry: i32,
+    industry: Industry,
     account: Thing,
 }
 
@@ -71,23 +70,19 @@ pub async fn create(
         .bind(("name", institution_name))
         .await?
         .take(0)?;
-    dbg!(&institution);
 
     if institution.is_none() {
-        dbg!("Creating new institution");
         let new_institution_object = NewInstitution {
             name: institution_name.to_string(),
             website: institution_website,
             user: auth.clone(),
         };
-        dbg!(&new_institution_object);
         let new_institution: Vec<Record> = db
             .create("institution")
             .content(new_institution_object)
             .await?;
         institution = new_institution[0].id.clone().into();
     }
-    dbg!(&institution);
 
     let new_account: Vec<Record> = db
         .create("account")
@@ -100,14 +95,12 @@ pub async fn create(
         })
         .await?;
 
-    dbg!(&new_account);
-
     let account_id = new_account[0].id.clone();
 
     let secure_account: Vec<Record> = db
         .create("secure_account")
         .content(NewSecureAccount {
-            industry: industry.into(),
+            industry: industry,
             account: account_id,
         })
         .await?;
@@ -116,10 +109,16 @@ pub async fn create(
 }
 
 #[derive(Debug, Deserialize, Serialize, Type)]
+pub struct Institution {
+    pub name: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Type)]
 pub struct Account {
     pub created_at: String,
     pub identity: String,
     pub recovery: Option<String>,
+    pub institution: Institution,
 }
 
 #[derive(Debug, Deserialize, Serialize, Type)]
@@ -133,11 +132,21 @@ pub struct SecureAccount {
 pub async fn get(
     db: tauri::State<'_, Surreal<Client>>,
     id: &str,
-) -> Result<SecureAccount, AccountError> {
-    let account = db
-        .select::<Option<SecureAccount>>(("secure_account", id))
-        .await?
+) -> Result<(SecureAccount, String), AccountError> {
+    let mut result = db
+        .query("SELECT industry, account.created_at, account.identity, account.recovery, account.institution.name
+            FROM type::thing('secure_account', $id);")
+        .bind(("id", id))
+        .await?;
+    let account = result
+        .take::<Option<SecureAccount>>(0)?
         .ok_or(AccountError::NotFound(Thing::from(("secure_account", id))))?;
-
-    Ok(account)
+    let secret = "supersecrure"; // TODO
+    let password = gen_pw(
+        &account.account.institution.name,
+        &account.industry,
+        secret,
+        &account.account.identity,
+    );
+    Ok((account, password))
 }

@@ -35,9 +35,10 @@ export function create(institutionName: string, institutionWebsite: string | nul
 }
 
 export function get(id: string) {
-    return invoke()<SecureAccount>("get", { id })
+    return invoke()<[SecureAccount, string]>("get", { id })
 }
 
-export type Account = { created_at: string; identity: string; recovery: string | null }
-export type SecureAccount = { industry: Industry; account: Account }
+export type Institution = { name: string }
 export type Industry = "Tech" | "Games" | "Social" | "Finance" | "Shopping" | "Science" | "Other"
+export type SecureAccount = { industry: Industry; account: Account }
+export type Account = { created_at: string; identity: string; recovery: string | null; institution: Institution }

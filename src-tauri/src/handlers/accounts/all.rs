@@ -1,73 +1,40 @@
 use super::types::AccountError;
-use entities::*;
-use sea_orm::*;
-use serde::Serialize;
+use crate::algorithm::gen_pw;
+use crate::handlers::auth::AuthError;
+use crate::types::Industry;
+use serde::{Deserialize, Serialize};
 use specta::Type;
-use std::sync::Mutex;
+use surrealdb::engine::remote::ws::Client;
+use surrealdb::sql::Thing;
+use surrealdb::Surreal;
 
-#[derive(Serialize, Debug, Type, FromQueryResult)]
+#[derive(Debug, Deserialize, Serialize, Type)]
+pub struct Institution {
+    pub name: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Type)]
+pub struct Bucket {
+    pub name: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Type)]
 pub struct Account {
-    pub id: i32,
-    pub created_at: String,
-    pub account_name: String,
-    pub bucket_name: String,
-    pub bucket_color: String,
-    pub institution_name: String,
+    pub id: String,
+    pub identity: String,
+    pub institution: Institution,
+    pub bucket: Option<Bucket>,
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn search_user_accounts() -> Result<(), AccountError> {
-    todo!()
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn list_user_accounts(
-    db: tauri::State<'_, DatabaseConnection>,
-    user: tauri::State<'_, Mutex<user::Model>>,
+async fn search(
+    db: tauri::State<'_, Surreal<Client>>,
+    search_term: &str,
 ) -> Result<Vec<Account>, AccountError> {
-    let user_id = user.lock().unwrap().id;
-    drop(user);
-
-    let accounts = account::Entity::find()
-        .column_as(account::Column::Id, "id")
-        .column_as(account::Column::CreatedAt, "created_at")
-        .column_as(account::Column::AccountName, "account_name")
-        .column_as(bucket::Column::Name, "bucket_name")
-        .column_as(bucket::Column::Color, "bucket_color")
-        .column_as(institution::Column::Name, "institution_name")
-        .filter(account::Column::UserId.eq(user_id))
-        .join(JoinType::LeftJoin, account::Relation::Bucket.def())
-        .into_model::<Account>()
-        .all(db.inner())
-        .await?;
-
-    /* let accounts = Account::find_by_statement(Statement::from_sql_and_values(
-        DbBackend::Postgres,
-        r#"
-        SELECT
-            a.id as id,
-            a.created_at as created_at,
-            a.account_name as account_name,
-            b.name as bucket_name,
-            b.color as bucket_color,
-            i.name as institution_name
-        FROM account a
-            LEFT JOIN bucket b ON a.bucket_id = b.id
-            LEFT JOIN institution i ON a.institution_id = i.id
-        WHERE a.user_id = $1;
-        "#,
-        [user_id.into()],
-    ))
-    .all(db.inner())
-    .await?; */
-
-    Ok(accounts)
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn move_account_to_bucket() -> Result<(), AccountError> {
-    todo!()
+    Ok(db
+        .query("SELECT id, identity, institution.name bucket.name FROM account WHERE institution.name ~ $query")
+        .bind(("query", search_term))
+        .await?
+        .take::<Vec<Account>>(0)?)
 }

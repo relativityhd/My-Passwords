@@ -1,10 +1,11 @@
-use serde::{Deserialize, Serialize};
+use serde_repr::*;
 use specta::Type;
 use std::convert::Infallible;
 use std::fmt::Display;
 pub use std::str::FromStr;
 
-#[derive(Serialize, Deserialize, Debug, Type)]
+#[derive(Serialize_repr, Deserialize_repr, PartialEq, Debug, Type)]
+#[repr(u8)]
 pub enum Industry {
     Tech,     // -> @
     Games,    // -> !

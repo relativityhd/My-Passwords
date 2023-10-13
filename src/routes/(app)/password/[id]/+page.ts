@@ -18,6 +18,8 @@ export const prerender = false;
 import { get } from '$lib/bindings';
 
 export async function load({ params }) {
-	const account = await get(params.id);
-	return { account };
+	const [account, password] = await get(params.id);
+	console.log(account);
+	console.log(password);
+	return { account, password };
 }

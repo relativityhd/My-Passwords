@@ -114,6 +114,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_json",
+ "serde_repr",
  "specta",
  "surrealdb",
  "tauri",

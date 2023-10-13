@@ -26,6 +26,7 @@
 		<md-outlined-text-field name="search" label="Search">
 			<md-icon slot="leading-icon">search</md-icon>
 		</md-outlined-text-field>
+		<a href="/password/4a8uocok3wqj9jk7y1iv">PW</a>
 	</div>
 
 	<!-- Recents -->

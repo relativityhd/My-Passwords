@@ -36,7 +36,7 @@
 	}
 	body {
 		font-family: var(--md-ref-typeface-brand);
-		background: var(--md-sys-color-background);
+		background: var(--md-sys-color-surface-variant);
 		color: var(--md-sys-color-on-background);
 	}
 </style>

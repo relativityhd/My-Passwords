@@ -1,86 +1,95 @@
 <script>
-	/* 	import { CopyButton } from 'carbon-components-svelte';
-	import { Grid, Row, Column } from 'carbon-components-svelte';
-	import { Breadcrumb, BreadcrumbItem } from 'carbon-components-svelte';
-	import {
-		StructuredList,
-		StructuredListRow,
-		StructuredListCell,
-		StructuredListBody
-	} from 'carbon-components-svelte';
-	import { Tile } from 'carbon-components-svelte';
-	import { Tag } from 'carbon-components-svelte';
-	import { Button } from 'carbon-components-svelte';
-	import { FaceActivated } from 'carbon-icons-svelte';
-	import TrashCan from 'carbon-icons-svelte/lib/TrashCan.svelte';
+	import '@material/web/button/filled-button';
+	import '@material/web/button/outlined-button';
+	import '@material/web/iconbutton/filled-icon-button';
+	import '@material/web/textfield/outlined-text-field';
+	import '@material/web/icon/icon';
+	import '@material/web/list/list';
+	import '@material/web/list/list-item';
+	import '@material/web/divider/divider';
+	import '@material/web/iconbutton/icon-button';
 	import { DateTime } from 'luxon';
 
-	export let data; */
+	export let data;
 </script>
 
-<!--
-  How Carbon Grid works:
-  sm=4
-  md=8
-  lg=16
-  xlg=16
-  max=16
--->
-<!--
-<Grid>
-	<Row>
-		<Column sm={4}>
-			<Breadcrumb noTrailingSlash>
-				<BreadcrumbItem href="/">Home</BreadcrumbItem>
-				<BreadcrumbItem href="/password/{data.id}" isCurrentPage>
-					{data.institution_name}:{data.account_name}
-				</BreadcrumbItem>
-			</Breadcrumb>
-		</Column>
-	</Row>
-	<Row>
-		<Column sm={4} md={8} lg={7}>
-			<h1 style="display: inline;">{data.password}</h1>
-			<CopyButton style="display: inline;" text={data.password} feedback="Copied to clipboard" />
-			<br />
-			{#if false}
-				<Tag type="magenta">Legacy Secure</Tag>
-			{:else if false}
-				<Tag type="green">Super Secure</Tag>
-			{:else}
-				<Tag type="teal">Secure</Tag>
-			{/if}
-		</Column>
-		<Column sm={4} md={4} lg={5}>
-			<h3>{data.institution_name}</h3>
-			<p>Website: Coming soon</p>
-			<Button kind="danger-tertiary" iconDescription="Delete" icon={TrashCan} />
-			<Button>Edit</Button>
-		</Column>
-		<Column sm={4} md={4} lg={4}>
-			<StructuredList>
-				<StructuredListBody>
-					<StructuredListRow>
-						<StructuredListCell noWrap>Account</StructuredListCell>
-						<StructuredListCell>{data.account_name}</StructuredListCell>
-					</StructuredListRow>
-					<StructuredListRow>
-						<StructuredListCell noWrap>Industry</StructuredListCell>
-						<StructuredListCell>{data.industry}</StructuredListCell>
-					</StructuredListRow>
-					<StructuredListRow>
-						<StructuredListCell noWrap>Created</StructuredListCell>
-						<StructuredListCell>
-							{DateTime.fromISO(data.created_at).toRelativeCalendar()}
-						</StructuredListCell>
-					</StructuredListRow>
-				</StructuredListBody>
-			</StructuredList>
-		</Column>
+<div class="grid-container">
+	<div class="institution container">
+		<md-icon-button href="/">
+			<md-icon>arrow_back</md-icon>
+		</md-icon-button>
+		<h3>{data.account.account.institution.name}</h3>
+	</div>
 
-		<Column sm={4} md={8} lg={9}>
-			<Tile>Recovery Keys and more additional Information is coming soon...</Tile>
-		</Column>
-	</Row>
-</Grid>
- -->
+	<div class="password container">
+		<h1>{data.password}</h1>
+		<md-filled-icon-button>
+			<md-icon>content_copy</md-icon>
+		</md-filled-icon-button>
+	</div>
+
+	<div class="data container">
+		<md-list>
+			<md-list-item>
+				Identity: {data.account.account.identity}
+			</md-list-item>
+			<md-divider />
+			<md-list-item>
+				Created: {DateTime.fromISO(data.account.account.created_at).toRelativeCalendar()}
+			</md-list-item>
+			<md-divider />
+			<md-list-item>
+				Industry: {data.account.industry}
+			</md-list-item>
+			<md-divider />
+			<md-list-item>
+				Recovery: {data.account.account.recovery || '/'}
+			</md-list-item>
+		</md-list>
+
+		<md-outlined-button trailing-icon>
+			Edit <md-icon slot="icon">edit</md-icon>
+		</md-outlined-button>
+		<md-outlined-button trailing-icon>
+			Delete <md-icon slot="icon">delete</md-icon>
+		</md-outlined-button>
+	</div>
+</div>
+
+<style>
+	.grid-container {
+		display: grid;
+		grid-template-columns: 3fr 2fr;
+		grid-template-rows: auto;
+		grid-gap: 16px;
+		grid-template-areas:
+			'institution data'
+			'password data';
+		place-items: stretch;
+		place-content: stretch;
+	}
+
+	.container {
+		display: flex;
+		flex-flow: column wrap;
+		justify-content: flex-start;
+		align-items: stretch;
+		height: calc(100% - 32px);
+		width: calc(100% - 32px);
+		padding: 16px;
+	}
+
+	.password {
+		grid-area: password;
+		flex-flow: row nowrap;
+	}
+
+	.institution {
+		grid-area: institution;
+		flex-flow: row wrap;
+	}
+
+	.data {
+		grid-area: data;
+	}
+</style>

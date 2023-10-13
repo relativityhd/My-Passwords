@@ -16,8 +16,9 @@ tauri-build = { version = "1.4.0", features = [] }
 [dependencies]
 #entities = { path = "entities" }
 #migration = { path = "migration" } # depends on your needs
-serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_repr = "0.1"
 tauri = { version = "1.4.0", features = [ "clipboard-all", "fs-all"] }
 #sea-orm = { version = "0.12", features = [
 #  "sqlx-postgres",
