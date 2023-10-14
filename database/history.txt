@@ -1,4 +1,14 @@
 #V2
+select * from secure_account where id = 4a8uocok3wqj9jk7y1iv;
+select * from secure_account where id=4a8uocok3wqj9jk7y1iv;
+select * from secure_account where id="4a8uocok3wqj9jk7y1iv";
+select * from secure_account:4a8uocok3wqj9jk7y1iv;
+select * from type::thing(secure_account, 4a8uocok3wqj9jk7y1iv);
+select * from type::thing("secure_account", "4a8uocok3wqj9jk7y1iv");
+select *, secure_account from account fetch secure_account
+select *, secure_account.id from account fetch secure_account
+/**\nInit script for setting up the SurrealDB database.\n*/\n\n// TODO: Define Indices for all tables, depending on whats needed\n\n-- Namespace and Database\nDEFINE NAMESPACE accounts;
+USE NAMESPACE accounts;
 DEFINE DATABASE dev;
 USE DB dev;
 \n-- Table User and Sessions\nDEFINE TABLE user SCHEMAFULL\n  PERMISSIONS FOR select, update, delete WHERE id = $auth.id;
@@ -89,13 +99,3 @@ DEFINE FIELD industry ON super_secure_account TYPE int;
 \n-- Table SSO Accounts\nDEFINE TABLE sso_account SCHEMAFULL\n  PERMISSIONS FOR select, create, update, delete WHERE account.user = $auth.id;
 \nDEFINE FIELD account ON sso_account TYPE record(account);
 DEFINE FIELD sso ON sso_account TYPE record(institution);
-select * from secure_accounts;
-select * from secure_account;
-select * from secure_account where id = 4a8uocok3wqj9jk7y1iv;
-select * from secure_account where id=4a8uocok3wqj9jk7y1iv;
-select * from secure_account where id="4a8uocok3wqj9jk7y1iv";
-select * from secure_account:4a8uocok3wqj9jk7y1iv;
-select * from type::thing(secure_account, 4a8uocok3wqj9jk7y1iv);
-select * from type::thing("secure_account", "4a8uocok3wqj9jk7y1iv");
-select *, secure_account from account fetch secure_account
-select *, secure_account.id from account fetch secure_account

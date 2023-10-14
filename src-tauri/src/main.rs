@@ -3,6 +3,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod algorithm;
+mod common;
+mod errors;
 mod handlers;
 mod types;
 
@@ -20,18 +22,17 @@ async fn main() {
             auth::signup,
             auth::signout,
             auth::is_authenticated,
-            accounts::secure::live_input,
-            accounts::secure::create,
-            accounts::secure::get,
-            /* add_secure_account,
-            retrieve_secure_account,
-            search_user_accounts,
-            list_user_accounts,
-            create_bucket,
-            recolor_bucket,
-            rename_bucket,
-            delete_bucket,
-            get_user_buckets, */
+            accounts::secure_live_input,
+            accounts::create_secure,
+            accounts::get_secure,
+            accounts::delete_secure,
+            accounts::search,
+            accounts::search_bucket,
+            buckets::create_bucket,
+            buckets::get_buckets,
+            buckets::recolor_bucket,
+            buckets::rename_bucket,
+            buckets::delete_bucket,
         ],
         "../src/lib/bindings.ts",
     )
@@ -52,18 +53,17 @@ async fn main() {
             auth::signup,
             auth::signout,
             auth::is_authenticated,
-            accounts::secure::live_input,
-            accounts::secure::create,
-            accounts::secure::get,
-            /* add_secure_account,
-            retrieve_secure_account,
-            search_user_accounts,
-            list_user_accounts,
-            create_bucket,
-            recolor_bucket,
-            rename_bucket,
-            delete_bucket,
-            get_user_buckets, */
+            accounts::secure_live_input,
+            accounts::create_secure,
+            accounts::get_secure,
+            accounts::delete_secure,
+            accounts::search,
+            accounts::search_bucket,
+            buckets::create_bucket,
+            buckets::get_buckets,
+            buckets::recolor_bucket,
+            buckets::rename_bucket,
+            buckets::delete_bucket,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

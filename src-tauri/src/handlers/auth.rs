@@ -1,36 +1,12 @@
-use std::path::PathBuf;
-
+use crate::common::get_user;
+use crate::errors::AuthError;
+use crate::types::DB;
 use serde::Serialize;
-use surrealdb::engine::remote::ws::Client;
+use std::path::PathBuf;
 use surrealdb::opt::auth::{Jwt, Scope};
 use surrealdb::sql::Thing;
-use surrealdb::Surreal;
-use thiserror::Error;
 use tokio::fs::File;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-
-#[derive(Debug, Error)]
-pub enum AuthError {
-    #[error("Database error: {0:?}")]
-    Db(#[from] surrealdb::Error),
-    #[error("IO error: {0:?}")]
-    Io(#[from] std::io::Error),
-    #[error("App data directory not found")]
-    AppDataNotFound,
-    #[error("Invalid UTF-8 in cookie file: {0:?}")]
-    InvalidUtf8(#[from] std::string::FromUtf8Error),
-    #[error("Not signed in")]
-    NotSignedIn,
-}
-
-impl Serialize for AuthError {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.serialize_str(self.to_string().as_ref())
-    }
-}
 
 #[derive(Serialize)]
 struct Credentials<'a> {
@@ -53,15 +29,8 @@ async fn store_cookie(app_data_dir: Option<PathBuf>, token: Jwt) -> Result<(), A
 
 #[tauri::command]
 #[specta::specta]
-pub async fn signout(
-    app_handle: tauri::AppHandle,
-    db: tauri::State<'_, Surreal<Client>>,
-) -> Result<(), AuthError> {
-    let auth: Thing = db
-        .query("RETURN $auth;")
-        .await?
-        .take::<Option<Thing>>(0)?
-        .ok_or(AuthError::NotSignedIn)?;
+pub async fn signout(app_handle: tauri::AppHandle, db: DB<'_>) -> Result<(), AuthError> {
+    let auth = get_user(db.clone()).await?;
     println!("Sign out user: {}", auth);
     let fpath = app_handle
         .path_resolver()
@@ -78,11 +47,7 @@ pub async fn signout(
 
 #[tauri::command]
 #[specta::specta]
-pub async fn is_authenticated(
-    app_handle: tauri::AppHandle,
-    db: tauri::State<'_, Surreal<Client>>,
-) -> Result<bool, AuthError> {
-    //let mut res = db.query("RETURN $auth;").await?.take(0)?;
+pub async fn is_authenticated(app_handle: tauri::AppHandle, db: DB<'_>) -> Result<bool, AuthError> {
     let auth: Option<Thing> = db.query("RETURN $auth;").await?.take(0)?;
     if let Some(id) = auth {
         println!("User is authenticated: {}", id);
@@ -112,7 +77,7 @@ pub async fn is_authenticated(
 #[specta::specta]
 pub async fn signin(
     app_handle: tauri::AppHandle,
-    db: tauri::State<'_, Surreal<Client>>,
+    db: DB<'_>,
     identity: &str,
     password: &str,
     remember: bool,
@@ -142,7 +107,7 @@ pub async fn signin(
 #[specta::specta]
 pub async fn signup(
     app_handle: tauri::AppHandle,
-    db: tauri::State<'_, Surreal<Client>>,
+    db: DB<'_>,
     email: &str,
     username: &str,
     password: &str,
