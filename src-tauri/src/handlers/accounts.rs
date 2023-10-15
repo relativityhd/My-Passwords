@@ -339,7 +339,7 @@ pub async fn supersecure_live_input(
 
 #[tauri::command]
 #[specta::specta]
-pub async fn create_super_secure(
+pub async fn create_supersecure(
     db: DB<'_>,
     institution_name: &str,
     institution_website: Option<String>,
@@ -447,7 +447,7 @@ pub async fn create_super_secure(
 
 #[tauri::command]
 #[specta::specta]
-pub async fn get_super_secure(
+pub async fn get_supersecure(
     db: DB<'_>,
     id: &str,
 ) -> Result<(SuperSecureAccount, String), AccountError> {
@@ -476,7 +476,7 @@ pub async fn get_super_secure(
 
 #[tauri::command]
 #[specta::specta]
-pub async fn delete_super_secure(db: DB<'_>, id: &str) -> Result<(), AccountError> {
+pub async fn delete_supersecure(db: DB<'_>, id: &str) -> Result<(), AccountError> {
     let mut result = db
         .query(
             "SELECT id, account.id, account.institution.id
