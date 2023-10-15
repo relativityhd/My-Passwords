@@ -46,10 +46,16 @@ pub enum AccountError {
     AccountNotFound(String),
     #[error("No account found with id secure_account:{0}")]
     SecureAccountNotFound(String),
+    #[error("No account found with id super_secure_account:{0}")]
+    SuperSecureAccountNotFound(String),
+    #[error("No account found with id sso_account:{0}")]
+    SsoAccountNotFound(String),
     #[error("Database is probably corrupted: No Bucket found with id bucket:{0}")]
     CorruptedBucket(String),
     #[error("Database is probably corrupted: No Institution found with id institution:{0}")]
     CorruptedInstitution(String),
+    #[error("Database is probably corrupted: No TwoFactor Authentification found with id two_factor:{0}")]
+    CorruptedTwoFactor(String),
 }
 
 #[derive(Debug, Serialize, Error)]

@@ -73,8 +73,8 @@ DEFINE TABLE account SCHEMAFULL
   PERMISSIONS FOR select, create, update, delete WHERE user = $auth.id;
 
 DEFINE FIELD created_at ON account TYPE datetime DEFAULT time::now();
-DEFINE FIELD identity ON account TYPE string;
 DEFINE FIELD recovery ON account TYPE option<string>;
+DEFINE FIELD account_type ON account TYPE string;
 
 DEFINE FIELD user ON account TYPE record(user);
 DEFINE FIELD bucket ON account TYPE option<record(bucket)>;
@@ -86,6 +86,7 @@ DEFINE TABLE secure_account SCHEMAFULL
   PERMISSIONS FOR select, create, update, delete WHERE account.user = $auth.id;
 
 DEFINE FIELD industry ON secure_account TYPE int;
+DEFINE FIELD identity ON account TYPE string;
 
 DEFINE FIELD account ON secure_account TYPE record(account);
 
@@ -97,6 +98,7 @@ DEFINE FIELD pin ON super_secure_account TYPE int;
 DEFINE FIELD min_length ON super_secure_account TYPE int;
 DEFINE FIELD max_length ON super_secure_account TYPE int;
 DEFINE FIELD industry ON super_secure_account TYPE int;
+DEFINE FIELD identity ON account TYPE string;
 
 DEFINE FIELD account ON super_secure_account TYPE record(account);
 

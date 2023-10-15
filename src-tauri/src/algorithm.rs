@@ -19,6 +19,18 @@
  */
 use super::types::Industry;
 
+pub fn gen_super_pw(
+    institution: &str,
+    industry: &Industry,
+    secret: &str,
+    account_name: &str,
+    pin: i32,
+    min_length: i32,
+    max_length: i32,
+) -> String {
+    todo!()
+}
+
 pub fn gen_pw(institution: &str, industry: &Industry, secret: &str, account_name: &str) -> String {
     let greek_letter = match institution.len() {
         0..=5 => "Alpha",
