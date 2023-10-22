@@ -35,12 +35,27 @@ DEFINE FIELD owner ON account
   DEFAULT $auth.id;
 
 -- Relations
-DEFINE TABLE is_sorted_in SCHEMAFULL;
+DEFINE TABLE is_sorted_in SCHEMAFULL
+  PERMISSIONS FOR select, create, update, delete WHERE owner = $auth.id;
+
 DEFINE FIELD in ON is_sorted_in TYPE record<account>;
 DEFINE FIELD out ON is_sorted_in TYPE record<bucket>;
+
+DEFINE FIELD owner ON is_sorted_in
+  TYPE record<user>
+  DEFAULT $auth.id;
+
 DEFINE INDEX account_has_single_bucket ON TABLE is_sorted_in COLUMNS in UNIQUE;
 
-DEFINE TABLE is_secured_by SCHEMAFULL;
+
+DEFINE TABLE is_secured_by SCHEMAFULL
+  PERMISSIONS FOR select, create, update, delete WHERE owner = $auth.id;
+
 DEFINE FIELD in ON is_secured_by TYPE record<account>;
 DEFINE FIELD out ON is_secured_by TYPE record<twofactor>;
+
+DEFINE FIELD owner ON is_secured_by
+  TYPE record<user>
+  DEFAULT $auth.id;
+
 DEFINE INDEX account_has_single_twofactor ON TABLE is_secured_by COLUMNS in UNIQUE;

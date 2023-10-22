@@ -3,7 +3,7 @@ DEFINE TABLE supersecure_account SCHEMAFULL
   PERMISSIONS FOR select, create, update, delete WHERE owner = $auth.id;
 
 DEFINE FIELD industry ON supersecure_account
-  TYPE int;
+  TYPE string;
 DEFINE FIELD identity ON supersecure_account
   TYPE string;
 DEFINE FIELD pin ON supersecure_account

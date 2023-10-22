@@ -3,7 +3,7 @@ DEFINE TABLE secure_account SCHEMAFULL
   PERMISSIONS FOR select, create, update, delete WHERE owner = $auth.id;
 
 DEFINE FIELD industry ON secure_account
-  TYPE int;
+  TYPE string;
 DEFINE FIELD identity ON secure_account
   TYPE string;
 
