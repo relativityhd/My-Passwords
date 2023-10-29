@@ -22,18 +22,13 @@ Roadmap:
 Start DB:
 
 ```sh
-sudo /etc/init.d/postgresql start 12
+surreal start --strict memory
 ```
 
-Migrate:
+Or via Surrealist
 
-```sh
-sea-orm-cli migrate up -u postgres://tobias:tobias@localhost/my_passwords
-sea-orm-cli migrate down -u postgres://tobias:tobias@localhost/my_passwords
-```
+First time-init:
 
-Generate Entities:
-
-```sh
-sea-orm-cli generate entity -l -u postgres://tobias:tobias@localhost/my_passwords -o entity/src
+```pwsh
+.\database\startup.ps1 root root
 ```
