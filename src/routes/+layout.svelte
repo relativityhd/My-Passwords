@@ -6,7 +6,7 @@
 	} from '@material/material-color-utilities';
 
 	// Get the theme from a hex color
-	const theme = themeFromSourceColor(argbFromHex('#0054a4'));
+	const theme = themeFromSourceColor(argbFromHex('#825f6b'));
 
 	// Print out the theme as JSON
 	console.log(JSON.stringify(theme, null, 2));
@@ -29,6 +29,8 @@
 
 <slot />
 
+<img src="/noise.svg" alt="Noise overlay" class="overlay" />
+
 <style global>
 	:root {
 		--md-ref-typeface-brand: 'DM Serif Display';
@@ -36,7 +38,17 @@
 	}
 	body {
 		font-family: var(--md-ref-typeface-brand);
-		background: var(--md-sys-color-surface-variant);
+		background: var(--md-sys-color-surface);
 		color: var(--md-sys-color-on-background);
+	}
+
+	.overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 9999;
+		pointer-events: none;
 	}
 </style>

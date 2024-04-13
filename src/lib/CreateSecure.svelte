@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { createEventDispatcher, onMount } from 'svelte';
 	import '@material/web/button/filled-button';
 	import '@material/web/button/text-button';
 	import '@material/web/textfield/filled-text-field';
@@ -7,9 +8,11 @@
 	import type { MdFilledTextField } from '@material/web/textfield/filled-text-field';
 	import type { MdFilledSelect } from '@material/web/select/filled-select';
 	import { Industry } from '$lib/types';
-	import { liveInput, create } from './bindings';
+	// import { liveInput, create } from './bindings';
 	import { writeText } from '@tauri-apps/api/clipboard';
 	import { goto } from '$app/navigation';
+
+	const dispatch = createEventDispatcher();
 
 	let institution_element: MdFilledTextField;
 	let account_element: MdFilledTextField;
@@ -17,6 +20,10 @@
 	let bucket_element: MdFilledSelect;
 	let website_element: MdFilledTextField;
 	let recovery_element: MdFilledTextField;
+
+	onMount(() => {
+		industry_element.value = Industry.Other;
+	});
 
 	let password = 'Fill in all fields to see your password';
 	let valid = false;
@@ -30,7 +37,8 @@
 			return;
 		}
 		valid = true;
-		password = await liveInput(institution_element.value, account_element.value, industry);
+		password = 'intermediate'; // await liveInput(institution_element.value, account_element.value, industry);
+		dispatch('password', password);
 	}
 
 	async function handleSubmit(copy: boolean) {
@@ -47,15 +55,13 @@
 			password = 'Fill in all fields to see your password';
 			valid = false;
 		}
-		let newacc = await create(institution, website, account, recovery, industry, bucket);
+		let newacc = '0'; // await create(institution, website, account, recovery, industry, bucket);
 		console.log(newacc);
 		goto(`/password/${newacc}`);
 		// goto(`/password/${newacc}`);
 	}
 	const buckets = ['Bucket 1', 'Bucket 2', 'Bucket 3'];
 </script>
-
-<h1>{password}</h1>
 
 <div class="container">
 	<md-filled-text-field
@@ -92,7 +98,9 @@
 			<div slot="headline">New Bucket</div>
 		</md-select-option> -->
 	</md-filled-select>
+</div>
 
+<div class="buttons-row">
 	<md-text-button on:click={() => handleSubmit(false)} disabled={!valid}>Only save</md-text-button>
 	<md-filled-button on:click={() => handleSubmit(true)} disabled={!valid}
 		>Copy & Save</md-filled-button
@@ -102,8 +110,14 @@
 <style>
 	.container {
 		display: grid;
-		grid-template-columns: 1fr 1fr 1fr;
-		grid-auto-flow: row;
-		gap: 16px;
+		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+		grid-gap: 10px;
+		grid-auto-flow: dense;
+		margin: 16px 0;
+	}
+
+	.buttons-row {
+		display: flex;
+		justify-content: flex-end;
 	}
 </style>

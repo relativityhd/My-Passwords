@@ -11,5 +11,25 @@
 	}
 </script>
 
-<md-outlined-button on:click={signout_user}>Logout</md-outlined-button>
+<div class="header">
+	<div class="text">
+		<h3>Hello Tobias!</h3>
+	</div>
+	<div class="logout">
+		<md-outlined-button on:click={signout_user}>Logout</md-outlined-button>
+	</div>
+</div>
 <slot />
+
+<style>
+	.header {
+		display: flex;
+		justify-content: flex-end;
+		align-items: center;
+		padding: 0rem 1rem;
+	}
+
+	.text {
+		flex: 1;
+	}
+</style>

@@ -26,7 +26,10 @@
 	}
 </script>
 
-<h1>Sign Up</h1>
+<div class="left">
+	<h1>Sign Up</h1>
+	<p>Already have an account?<br /> <a href="/signin">Sign In</a></p>
+</div>
 
 <form on:submit|preventDefault={handleSubmit} bind:this={formElement}>
 	<div class="inputs">
@@ -64,7 +67,6 @@
 	<div class="buttons">
 		<md-filled-button disabled={!isValid}>Sign Up</md-filled-button>
 	</div>
-	<p>Already have an account?<br /> <a href="/signin">Sign In</a></p>
 </form>
 
 <style scoped>
