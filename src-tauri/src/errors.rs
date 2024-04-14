@@ -46,6 +46,8 @@ pub enum BucketError {
     InvalidColor(String),
     #[error("No Bucket found with id bucket:{0}")]
     NotFound(String),
+    #[error("Database is probably corrupted: No ID was returned from the database.")]
+    NoID,
 }
 
 #[derive(Debug, Error)]
@@ -72,6 +74,8 @@ pub enum AccountError {
     PinPoisonError(String),
     #[error("The PIN was not found")]
     PinNotFound,
+    #[error("Database is probably corrupted: No ID was returned from the database.")]
+    NoID,
 }
 
 impl Serialize for AccountError {

@@ -19,21 +19,39 @@ Roadmap:
 
 ## Database Stuff
 
-Start DB:
+Start DB in memory
 
 ```sh
 surreal start --strict memory
 ```
 
-Or via Surrealist
+*or via Surrealist.*
 
 First time-init:
 
 ```pwsh
-.\database\startup.ps1 root root
+cd .\database\
+cargo run
 ```
 
-```sh
-curl -X POST -H "Accept: application/json" -d '{"ns":"accounts", "db":"dev", "sc":"user", "username":"Tobias", "email":"t@h.de", "password":"1234"}' http://localhost:8000/signup
-curl -X POST -H "Accept: application/json" -H "namespace: accounts" -H "database: dev" -H "scope: user" -d '{"username":"Tobias","email":"t@h.de","pass":"1234"}' http://localhost:8000/signup
-```
+## Roadmap
+
+- [x] Create Secure
+- [x] Secure Password Site
+- [x] Edit Secure
+- [x] Delete Secure
+- [ ] Super Secure Algo
+- [ ] Create Super Secure
+- [ ] Super Secure Password Site
+- [x] List of all Passwords
+- [ ] Create Buckets
+- [ ] Manage Buckets
+- [x] Delete Buckets
+- [ ] Create 2FA
+- [ ] Manage 2FA
+- [ ] Dashboard with Statistics
+- [ ] Random Bucket Wallpaper
+- [ ] Wallpaper Credits auf Logic Page und in pot. Footer
+- [ ] Dynamic Username Top left corner
+- [ ] Store Recent Searched / Popular Searches
+- [ ] Drag n Drop resorting of accounts into Buckets on the List Page

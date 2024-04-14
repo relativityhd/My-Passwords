@@ -98,7 +98,7 @@
 
 			<!-- SSO -->
 			<div class="manage container">
-				<md-outlined-button href="/sso" trailing-icon>
+				<md-outlined-button href="/list" trailing-icon>
 					Manage accounts <md-icon slot="icon">folder_open</md-icon>
 				</md-outlined-button>
 
@@ -148,7 +148,7 @@
 			</md-tabs>
 
 			<div role="tabpanel" id="panel-one" aria-labelledby="tab-one" hidden={activeTabIndex !== 0}>
-				<CreateSecure on:password={updatePassword} />
+				<CreateSecure on:password={updatePassword} {buckets} />
 			</div>
 			<div role="tabpanel" id="panel-two" aria-labelledby="tab-two" hidden={activeTabIndex !== 1}>
 				Super Secure

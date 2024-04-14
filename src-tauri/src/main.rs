@@ -32,9 +32,15 @@ async fn main() {
             buckets::delete_bucket,
             search::search,
             search::search_bucket,
+            accounts::get_mode,
+            accounts::in_sso_use,
+            accounts::delete_account,
+            accounts::get_all_accounts,
             accounts::secure::secure_live_input,
             accounts::secure::get_secure_password,
-            // accounts::create_supersecure,
+            accounts::secure::get_secure_overview,
+            accounts::secure::create_secure,
+            accounts::secure::edit_secure
         ],
         "../src/lib/bindings.ts",
     )
@@ -65,8 +71,15 @@ async fn main() {
             buckets::delete_bucket,
             search::search,
             search::search_bucket,
+            accounts::get_mode,
+            accounts::in_sso_use,
+            accounts::delete_account,
+            accounts::get_all_accounts,
             accounts::secure::secure_live_input,
             accounts::secure::get_secure_password,
+            accounts::secure::get_secure_overview,
+            accounts::secure::create_secure,
+            accounts::secure::edit_secure
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

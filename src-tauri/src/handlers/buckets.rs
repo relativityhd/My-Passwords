@@ -1,19 +1,10 @@
 use crate::errors::BucketError;
-use crate::types::{Record, DB};
+use crate::types::{handlers::Bucket, Record, DB};
 use once_cell::sync::Lazy;
 use regex::Regex;
-use serde::{Deserialize, Serialize};
-use specta::Type;
+use surrealdb::sql::Thing;
 
-static COLOR_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"/^#[0-9A-F]{6}$/i").unwrap());
-
-#[derive(Debug, Serialize, Deserialize, Type)]
-pub struct Bucket {
-    pub id: String,
-    pub name: String,
-    pub color: String,
-    pub n: u32,
-}
+static COLOR_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"^#[0-9A-Fa-f]{6}$").unwrap());
 
 #[tauri::command]
 #[specta::specta]
@@ -27,14 +18,15 @@ pub async fn create_bucket(
     }
 
     let sql = "fn::create_bucket($name, $color);";
-    let bucket: Vec<Record> = db
+    let bucket = db
         .query(sql)
         .bind(("name", bucket_name))
         .bind(("color", bucket_color))
         .await?
-        .take(0)?;
+        .take::<Option<Thing>>(0)?
+        .ok_or(BucketError::NoID)?;
 
-    Ok(bucket[0].id.id.to_string())
+    Ok(bucket.id.to_string())
 }
 
 #[tauri::command]
@@ -50,7 +42,9 @@ pub async fn get_buckets(db: DB<'_>) -> Result<Vec<Bucket>, BucketError> {
 #[tauri::command]
 #[specta::specta]
 pub async fn check_bucket_is_empty(db: DB<'_>, bucket_id: &str) -> Result<bool, BucketError> {
-    let sql = "RETURN array::len(SELECT * FROM is_sorted_in WHERE out = $bucket);";
+    let bucket_id = bucket_id.split(':').last().unwrap();
+    let sql =
+        "RETURN array::len(SELECT * FROM is_sorted_in WHERE out = type::thing('bucket', $bucket));";
     let n: Option<u32> = db.query(sql).bind(("bucket", bucket_id)).await?.take(0)?;
     let n = n.ok_or(BucketError::NotFound(bucket_id.to_string()))?;
     Ok(n == 0)
@@ -59,7 +53,8 @@ pub async fn check_bucket_is_empty(db: DB<'_>, bucket_id: &str) -> Result<bool, 
 #[tauri::command]
 #[specta::specta]
 pub async fn delete_bucket(db: DB<'_>, bucket_id: &str) -> Result<(), BucketError> {
-    let sql = "fn::delete_bucket($bucket);";
+    let bucket_id = bucket_id.split(':').last().unwrap();
+    let sql = "fn::delete_bucket(type::thing('bucket', $bucket));";
     db.query(sql)
         .bind(("bucket", bucket_id))
         .await?

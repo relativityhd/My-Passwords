@@ -9,7 +9,7 @@
 	import type { MdFilledSelect } from '@material/web/select/filled-select';
 	import { Industry } from '$lib/types';
 	// import { liveInput, create } from './bindings';
-	import { secureLiveInput, type Bucket, createSecure } from '$lib/bindings';
+	import { secureLiveInput, type Bucket, editSecure, type SecureOverview } from '$lib/bindings';
 	import { writeText } from '@tauri-apps/api/clipboard';
 	import { goto } from '$app/navigation';
 
@@ -23,7 +23,15 @@
 	let recovery_element: MdFilledTextField;
 
 	onMount(() => {
-		industry_element.value = Industry.Other;
+		console.log(account);
+		institution_element.value = account.institution;
+		account_element.value = account.identity;
+		industry_element.value = account.industry;
+		if (account.bucket) {
+			bucket_element.value = account.bucket.id;
+		}
+		website_element.value = account.website || '';
+		recovery_element.value = account.recovery || '';
 	});
 
 	let password = 'Fill in all fields to see your password';
@@ -65,7 +73,8 @@
 			website,
 			recovery
 		});
-		let newacc = await createSecure(
+		let newacc = await editSecure(
+			id,
 			institution,
 			website,
 			[],
@@ -76,63 +85,91 @@
 			null
 		);
 		console.log(newacc);
-		goto(`/password/${newacc}`);
+		dispatch('close');
+		goto(`/password/secure/${newacc}`);
 	}
+
+	export let account: SecureOverview;
+	export let id: string;
 	export let buckets: Bucket[] = [];
 </script>
 
-<div class="container">
-	<md-filled-text-field
-		label="Name of institution"
-		bind:this={institution_element}
-		on:change={handleInput}
-		on:input={handleInput}
-	/>
-	<md-filled-text-field
-		label="Your account name"
-		bind:this={account_element}
-		on:change={handleInput}
-		on:input={handleInput}
-	/>
+<div>
+	<div class="container">
+		<md-filled-text-field
+			label="Name of institution"
+			bind:this={institution_element}
+			on:change={handleInput}
+			on:input={handleInput}
+		/>
+		<md-filled-text-field
+			label="Your account name"
+			bind:this={account_element}
+			on:change={handleInput}
+			on:input={handleInput}
+		/>
 
-	<md-filled-select bind:this={industry_element} on:change={handleInput} label="Industry">
-		{#each Object.values(Industry) as industry}
-			<md-select-option value={industry}>
-				<div slot="headline">{industry}</div>
+		<md-filled-select bind:this={industry_element} on:change={handleInput} label="Industry">
+			{#each Object.values(Industry) as industry}
+				<md-select-option value={industry}>
+					<div slot="headline">{industry}</div>
+				</md-select-option>
+			{/each}
+		</md-filled-select>
+
+		<md-filled-text-field
+			label="Institution Website"
+			bind:this={website_element}
+			on:change={handleInput}
+			on:input={handleInput}
+		/>
+		<md-filled-text-field
+			label="Recovery Information"
+			bind:this={recovery_element}
+			on:change={handleInput}
+			on:input={handleInput}
+		/>
+
+		<md-filled-select
+			bind:this={bucket_element}
+			on:change={handleInput}
+			label="Bucket"
+			disabled={buckets.length === 0}
+		>
+			<md-select-option value="">
+				<div slot="headline">Unsorted</div>
 			</md-select-option>
-		{/each}
-	</md-filled-select>
+			{#each buckets as { id, name }}
+				<md-select-option value={id}>
+					<div slot="headline">{name}</div>
+				</md-select-option>
+			{/each}
+		</md-filled-select>
+	</div>
 
-	<md-filled-text-field label="Institution Website" bind:this={website_element} />
-	<md-filled-text-field label="Recovery Information" bind:this={recovery_element} />
-
-	<md-filled-select bind:this={bucket_element} label="Bucket" disabled={buckets.length === 0}>
-		<md-select-option value="">
-			<div slot="headline">Unsorted</div>
-		</md-select-option>
-		{#each buckets as { id, name }}
-			<md-select-option value={id}>
-				<div slot="headline">{name}</div>
-			</md-select-option>
-		{/each}
-	</md-filled-select>
-</div>
-
-<div class="buttons-row">
-	<md-text-button
-		on:click={() => handleSubmit(false)}
-		on:keydown={() => handleSubmit(false)}
-		role="button"
-		tabindex="0"
-		disabled={!valid}>Only save</md-text-button
-	>
-	<md-filled-button
-		on:click={() => handleSubmit(true)}
-		on:keydown={() => handleSubmit(true)}
-		role="button"
-		tabindex="0"
-		disabled={!valid}>Copy & Save</md-filled-button
-	>
+	<div class="buttons-row">
+		<md-text-button
+			on:click={() => dispatch('close')}
+			on:keydown={() => dispatch('close')}
+			role="button"
+			tabindex="0">Close</md-text-button
+		>
+		<div style="width: 100%;" />
+		<md-text-button
+			on:click={() => handleSubmit(false)}
+			on:keydown={() => handleSubmit(false)}
+			role="button"
+			tabindex="0"
+			disabled={!valid}>Only save</md-text-button
+		>
+		<md-filled-button
+			on:click={() => handleSubmit(true)}
+			on:keydown={() => handleSubmit(true)}
+			role="button"
+			tabindex="0"
+			disabled={!valid}>Copy & Save</md-filled-button
+		>
+	</div>
 </div>
 
 <style>

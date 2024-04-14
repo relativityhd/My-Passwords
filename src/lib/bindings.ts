@@ -54,6 +54,22 @@ export function searchBucket(searchTerm: string, bucketId: string) {
     return invoke()<SearchResult[]>("search_bucket", { searchTerm,bucketId })
 }
 
+export function getMode(id: string) {
+    return invoke()<Mode>("get_mode", { id })
+}
+
+export function inSsoUse(id: string) {
+    return invoke()<boolean>("in_sso_use", { id })
+}
+
+export function deleteAccount(id: string) {
+    return invoke()<null>("delete_account", { id })
+}
+
+export function getAllAccounts() {
+    return invoke()<ListResult[]>("get_all_accounts")
+}
+
 export function secureLiveInput(institution: string, identity: string, industry: Industry) {
     return invoke()<string>("secure_live_input", { institution,identity,industry })
 }
@@ -62,8 +78,24 @@ export function getSecurePassword(id: string) {
     return invoke()<string>("get_secure_password", { id })
 }
 
-export type Mode = "Secure" | "SuperSecure" | "LegacySecure" | "Sso"
-export type Industry = "Tech" | "Games" | "Social" | "Finance" | "Shopping" | "Science" | "Other"
-export type SearchResultBucket = { name: string; color: string }
-export type SearchResult = { id: string; account_type: Mode; institution: string; identity: string; bucket: SearchResultBucket }
+export function getSecureOverview(id: string) {
+    return invoke()<[SecureOverview, string]>("get_secure_overview", { id })
+}
+
+export function createSecure(institutionName: string, institutionWebsite: string | null, institutionAlias: string[], identity: string, recovery: string | null, industry: Industry, bucketid: string | null, twofactorid: string | null) {
+    return invoke()<string>("create_secure", { institutionName,institutionWebsite,institutionAlias,identity,recovery,industry,bucketid,twofactorid })
+}
+
+export function editSecure(id: string, institutionName: string, institutionWebsite: string | null, institutionAlias: string[], identity: string, recovery: string | null, industry: Industry, bucketid: string | null, twofactorid: string | null) {
+    return invoke()<string>("edit_secure", { id,institutionName,institutionWebsite,institutionAlias,identity,recovery,industry,bucketid,twofactorid })
+}
+
 export type Bucket = { id: string; name: string; color: string; n: number }
+export type SearchResult = { id: string; account_type: Mode; institution: string; identity: string; bucket: ResultBucket | null }
+export type Mode = "Secure" | "SuperSecure" | "LegacySecure" | "Sso"
+export type ListResult = { id: string; account_type: Mode; institution: string; identity: string; bucket: ResultBucket | null; twofactor: ResultTwofactor | null }
+export type Industry = "Tech" | "Games" | "Social" | "Finance" | "Shopping" | "Science" | "Other"
+export type ResultBucket = { name: string; color: string }
+export type SecureOverview = { institution: string; industry: Industry; identity: string; mode: Mode; created: string; recovery: string | null; website: string | null; alias: string[]; bucket: Bucket | null; twofactor: TwoFactor | null }
+export type ResultTwofactor = { name: string; device: string }
+export type TwoFactor = { id: string; name: string; device: string }

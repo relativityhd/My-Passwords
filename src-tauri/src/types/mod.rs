@@ -8,6 +8,7 @@ use surrealdb::engine::remote::ws::Client;
 use surrealdb::Surreal;
 use tokio::sync::Mutex;
 
+pub mod handlers;
 pub use industry::Industry;
 pub use mode::Mode;
 

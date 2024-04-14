@@ -15,11 +15,12 @@ export function load({ params }): Promise<UnlockedSecretAccount> {
 export const prerender = false;
  */
 
-import { get } from '$lib/bindings';
+import { goto } from '$app/navigation';
+import { getMode } from '$lib/bindings';
 
 export async function load({ params }) {
-	const [account, password] = await get(params.id);
-	console.log(account);
-	console.log(password);
-	return { account, password };
+	const mode = await getMode(params.id);
+	if (mode === 'Secure') {
+		goto(`/password/secure/${params.id}`);
+	}
 }

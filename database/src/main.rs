@@ -146,6 +146,7 @@ async fn setup_test_data() {
         LET $msacc = fn::create_supersecure_account('tobiashoelzer@hotmail.com', 'Tech', 1111, 10, 26, 'Microsoft', '3MTMwMzQ3ODU', 'https://microsoft.com', none, $homebucket, $msauth);
         fn::create_secure_account('tobiashoelzer@hotmail.com', 'Games', 'Faceit', none, none, none, $homebucket, none);
         fn::create_secure_account('tobiashoelzer@hotmail.com', 'Social', 'Instagram', none, none, none, $homebucket, none);
+        fn::create_secure_account('tobiashoelzer@hotmail.com', 'Social', 'Signal', none, none, none, none, none);
         fn::create_sso_account($msacc, 'GitHub', none, 'https://github.com', ['GutHub', 'Repos'], $homebucket, none);
 
         fn::create_secure_account('tobiashoelzer@work.com', 'Tech', 'Slack', none, none, none, $workbucket, none);

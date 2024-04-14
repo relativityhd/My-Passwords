@@ -1,29 +1,5 @@
 use crate::errors::AccountError;
-use crate::types::{Mode, DB};
-use serde::{Deserialize, Serialize};
-use specta::Type;
-
-#[derive(Serialize, Deserialize, Debug, Type)]
-pub struct SearchResultBucket {
-    pub name: String,
-    pub color: String,
-}
-
-#[derive(Serialize, Deserialize, Debug, Type)]
-pub struct SearchResult {
-    pub id: String,
-    pub account_type: Mode,
-    pub institution: String,
-    pub identity: String,
-    pub bucket: SearchResultBucket,
-}
-
-/*
-"Failed to convert
-`[{ account_type: 'supersecure', bucket: { color: '#00ff00', name: 'home' }, id: account:zf22lensmix8irp10v5w, identity: 'tobiashoelzer@hotmail.com', institution: 'Microsoft' }]`
-to `T`: invalid type: map, expected a string"
-
-*/
+use crate::types::{handlers::SearchResult, DB};
 
 #[tauri::command]
 #[specta::specta]
@@ -39,7 +15,7 @@ pub async fn search(db: DB<'_>, search_term: &str) -> Result<Vec<SearchResult>, 
             ) as identity,
             (SELECT color, name FROM (->is_sorted_in->bucket))[0] as bucket
         FROM account
-        WHERE institution ~ $query;
+        WHERE institution ~ $query AND archived = false;
     ";
     let accounts: Vec<SearchResult> = db.query(sql).bind(("query", search_term)).await?.take(0)?;
     Ok(accounts)
@@ -63,7 +39,7 @@ pub async fn search_bucket(
             ) as identity,
             (SELECT color, name FROM (->is_sorted_in->bucket))[0] as bucket
         FROM account
-        WHERE institution ~ $query AND (SELECT id FROM (->is_sorted_in->bucket))[0] = $bucket;
+        WHERE institution ~ $query AND archived = false AND (SELECT id FROM (->is_sorted_in->bucket))[0] = $bucket;
     ";
     let accounts: Vec<SearchResult> = db
         .query(sql)

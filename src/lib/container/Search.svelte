@@ -20,6 +20,7 @@
 
 	function handleSearchInput() {
 		searchterm = search_element.value;
+		search_error = '';
 		if (searchterm.length < 2) {
 			search_results = [];
 			search_results_visible = false;

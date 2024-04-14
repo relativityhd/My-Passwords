@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import '@material/web/icon/icon';
 
 	export let name: string;
@@ -7,7 +8,13 @@
 	export let id: string;
 </script>
 
-<div class="grid-item">
+<div
+	class="grid-item"
+	on:click={() => goto('/list')}
+	on:keypress={() => goto('/list')}
+	role="button"
+	tabindex="0"
+>
 	<div class="card-image-wrapper">
 		<img class="card-image" src="/wallpaper/desert-ribbons.jpg" alt="Artisitc Satellite Imagery" />
 	</div>

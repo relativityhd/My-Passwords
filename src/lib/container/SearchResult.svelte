@@ -2,7 +2,10 @@
 	import { createEventDispatcher } from 'svelte';
 	import { slide } from 'svelte/transition';
 	import '@material/web/icon/icon';
+	import '@material/web/iconbutton/icon-button';
+	import '@material/web/iconbutton/filled-icon-button';
 	import type { SearchResult } from '$lib/bindings';
+	import { goto } from '$app/navigation';
 
 	const dispatch = createEventDispatcher();
 
@@ -34,10 +37,26 @@
 				<md-icon>{icons[result.account_type]}</md-icon>
 				<div>
 					<h3>{result.institution}</h3>
-					<p>in "{result.bucket.name}"</p>
+					{#if result.bucket}
+						<p>in "{result.bucket.name}"</p>
+					{/if}
 				</div>
 			</div>
-			<p>{result.identity}</p>
+			<div class="right">
+				<p>{result.identity}</p>
+				<md-filled-icon-button
+					on:click|stopPropagation={() => {
+						console.log('gotclicked');
+						goto(`/password/${result.id}`);
+					}}
+					on:keypress|stopPropagation={() => goto(`/password/${result.id}`)}
+					role="button"
+					aria-label="Goto password page"
+					tabindex="0"
+				>
+					<md-icon>arrow_forward</md-icon>
+				</md-filled-icon-button>
+			</div>
 		</div>
 	{/each}
 </div>
@@ -61,20 +80,6 @@
 	.result-item:not(:last-child) {
 		border-bottom: 1px solid var(--md-sys-color-on-primary);
 	}
-	.result-item::after {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		background: rgba(0, 0, 0, 0);
-		transition: background 0.3s ease;
-	}
-
-	.result-item:hover::after {
-		background: rgba(0, 0, 0, 0.02);
-	}
 	.result-item:hover {
 		cursor: pointer;
 	}
@@ -84,6 +89,20 @@
 		display: flex;
 		align-items: center;
 		justify-content: flex-start;
+	}
+
+	.result-item .right {
+		flex-grow: 1;
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+	}
+
+	.result-item .right md-filled-icon-button {
+		margin-left: 8px;
+	}
+	.result-item .right md-icon {
+		color: var(--md-sys-color-on-primary);
 	}
 
 	.result-item h3 {

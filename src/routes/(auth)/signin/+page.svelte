@@ -35,6 +35,8 @@
 		<md-filled-text-field
 			name="identifier"
 			label="Email or Name"
+			type="text"
+			value=""
 			required
 			on:change={onChange}
 			on:input={onChange}
@@ -42,6 +44,7 @@
 		<md-filled-text-field
 			name="password"
 			label="Password"
+			value=""
 			type="password"
 			required
 			on:change={onChange}

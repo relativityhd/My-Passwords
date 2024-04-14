@@ -155,13 +155,7 @@ DEFINE FUNCTION fn::edit_secure_account(
   $bucket_id: option<record>,
   $twofactor_id: option<record>
 ) {
-  LET $created_at = SELECT created_at FROM ONLY $account_id;
   LET $new_account_id = fn::create_secure_account($identity, $industry, $institution, $recovery, $website, $alias, $bucket_id, $twofactor_id);
-
-  -- Set created_at to the old value
-  UPDATE ONLY $new_account_id SET created_at = $created_at;
-
-  -- Delete old account
   fn::delete_account($account_id);
   RETURN $new_account_id;
 };
@@ -181,12 +175,7 @@ DEFINE FUNCTION fn::edit_super_secure_account(
   $bucket_id: option<record>,
   $twofactor_id: option<record>
 ) {
-  LET $created_at = SELECT created_at FROM ONLY $account_id;
   LET $new_account_id = fn::create_supersecure_account($identity, $industry, $pin, $min_length, $max_length, $institution, $recovery, $website, $alias, $bucket_id, $twofactor_id);
-
-  -- Set created_at to the old value
-  UPDATE ONLY $new_account_id SET created_at = $created_at;
-
   -- Delete old account
   fn::delete_account($account_id);
   RETURN $new_account_id;
@@ -203,12 +192,7 @@ DEFINE FUNCTION fn::edit_sso_account(
   $bucket_id: option<record>,
   $twofactor_id: option<record>
 ) {
-  LET $created_at = SELECT created_at FROM ONLY $account_id;
   LET $new_account_id = fn::create_sso_account($sso_account_id, $institution, $recovery, $website, $alias, $bucket_id, $twofactor_id);
-
-  -- Set created_at to the old value
-  UPDATE ONLY $new_account_id SET created_at = $created_at;
-
   -- Delete old account
   fn::delete_account($account_id);
   RETURN $new_account_id;
@@ -219,11 +203,11 @@ DEFINE FUNCTION fn::delete_account(
   $account_id: record,
 ) {
   -- Check for sso account
-  LET $secured_accounts = SELECT in FROM use_sso_of WHERE out = $account_id;
+  LET $secured_accounts = SELECT in, (<-account.archived)[0] as archived FROM use_sso_of WHERE out = $account AND !archived;;
   LET $n = array::len($secured_accounts);
   IF $n > 0 {
     THROW string::concat('Account is used by ', type::string($n), ' other accounts');
   };
 
-  UPDATE ONLY $account_id SET updated = time::NOW(), archived = true;
+  UPDATE ONLY $account_id SET archived = true;
 };

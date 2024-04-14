@@ -37,6 +37,7 @@
 			name="email"
 			label="Email"
 			type="email"
+			value=""
 			required
 			on:change={onChange}
 			on:input={onChange}
@@ -53,6 +54,7 @@
 			name="password"
 			label="Password"
 			type="password"
+			value=""
 			required
 			on:change={onChange}
 			on:input={onChange}
