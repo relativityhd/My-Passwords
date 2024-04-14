@@ -9,6 +9,7 @@
 	import type { MdFilledSelect } from '@material/web/select/filled-select';
 	import { Industry } from '$lib/types';
 	// import { liveInput, create } from './bindings';
+	import { secureLiveInput } from './bindings';
 	import { writeText } from '@tauri-apps/api/clipboard';
 	import { goto } from '$app/navigation';
 
@@ -37,7 +38,7 @@
 			return;
 		}
 		valid = true;
-		password = 'intermediate'; // await liveInput(institution_element.value, account_element.value, industry);
+		password = await secureLiveInput(institution_element.value, account_element.value, industry);
 		dispatch('password', password);
 	}
 

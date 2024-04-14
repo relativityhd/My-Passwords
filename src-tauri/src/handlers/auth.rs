@@ -1,6 +1,6 @@
 use crate::common::get_user;
 use crate::errors::AuthError;
-use crate::types::DB;
+use crate::types::{DB, PIN};
 use serde::Serialize;
 use std::path::PathBuf;
 use surrealdb::opt::auth::{Jwt, Scope};
@@ -29,7 +29,11 @@ async fn store_cookie(app_data_dir: Option<PathBuf>, token: Jwt) -> Result<(), A
 
 #[tauri::command]
 #[specta::specta]
-pub async fn signout(app_handle: tauri::AppHandle, db: DB<'_>) -> Result<(), AuthError> {
+pub async fn signout(
+    app_handle: tauri::AppHandle,
+    db: DB<'_>,
+    pin: PIN<'_>,
+) -> Result<(), AuthError> {
     let auth = get_user(db.clone()).await?;
     println!("Sign out user: {}", auth);
     let fpath = app_handle
@@ -41,6 +45,9 @@ pub async fn signout(app_handle: tauri::AppHandle, db: DB<'_>) -> Result<(), Aut
         std::fs::remove_file(fpath)?;
     }
     db.invalidate().await?;
+
+    let mut state = pin.lock().await;
+    state.val = None;
     println!("User signed out");
     Ok(())
 }
@@ -130,5 +137,70 @@ pub async fn signup(
     if remember {
         store_cookie(app_handle.path_resolver().app_data_dir(), token).await?;
     }
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn is_pinned(
+    app_handle: tauri::AppHandle,
+    db: DB<'_>,
+    pin: PIN<'_>,
+) -> Result<bool, AuthError> {
+    let auth = get_user(db.clone()).await?;
+
+    let state = pin.lock().await;
+    if state.val.is_some() {
+        return Ok(true);
+    }
+    drop(state); // Free the lock
+
+    let fname = format!("{}.cache", auth.id);
+    let fpath = app_handle
+        .path_resolver()
+        .app_data_dir()
+        .ok_or(AuthError::AppDataNotFound)?
+        .join(fname);
+    if !fpath.exists() {
+        println!("No pin found");
+        return Ok(false);
+    }
+    let mut file = File::open(fpath).await?;
+    let mut contents = vec![];
+    file.read_to_end(&mut contents).await?;
+    let v = u32::from_le_bytes(contents.as_slice().try_into()?);
+    let mut state = pin.lock().await;
+    state.val = Some(v as usize);
+    Ok(true)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn store_pin(
+    app_handle: tauri::AppHandle,
+    db: DB<'_>,
+    pin: PIN<'_>,
+    newpin: u32,
+) -> Result<(), AuthError> {
+    let auth = get_user(db.clone()).await?;
+
+    println!("Setting pin");
+    let dir = app_handle
+        .path_resolver()
+        .app_data_dir()
+        .ok_or(AuthError::AppDataNotFound)?;
+    dbg!(&dir);
+    if !dir.exists() {
+        tokio::fs::create_dir_all(&dir).await?;
+    }
+    let fname = format!("{}.cache", auth.id);
+    let mut file = File::create(dir.join(fname)).await?;
+
+    // Convert pin to bytes
+    let bytepin = newpin.to_le_bytes();
+    file.write_all(&bytepin).await?;
+
+    let mut state = pin.lock().await;
+    state.val = Some(newpin as usize);
     Ok(())
 }

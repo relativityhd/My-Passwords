@@ -13,3 +13,11 @@ export async function load() {
 	return { buckets, accounts };
 }
  */
+
+import { getBuckets } from '$lib/bindings';
+
+export async function load() {
+	const buckets = await getBuckets();
+	console.log(buckets);
+	return { buckets };
+}

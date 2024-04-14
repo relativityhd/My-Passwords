@@ -7,8 +7,8 @@ DEFINE FIELD name ON twofactor
 DEFINE FIELD device ON twofactor
   TYPE string;
 
-DEFINE FIELD owner ON account
+DEFINE FIELD owner ON twofactor
   TYPE record<user>
   DEFAULT $auth.id;
 
-DEFINE INDEX unique_twofactor_name_per_user ON bucket COLUMNS owner, name UNIQUE;
+DEFINE INDEX unique_twofactor_name_per_user ON twofactor COLUMNS owner, name UNIQUE;

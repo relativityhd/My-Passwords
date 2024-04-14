@@ -32,3 +32,8 @@ First time-init:
 ```pwsh
 .\database\startup.ps1 root root
 ```
+
+```sh
+curl -X POST -H "Accept: application/json" -d '{"ns":"accounts", "db":"dev", "sc":"user", "username":"Tobias", "email":"t@h.de", "password":"1234"}' http://localhost:8000/signup
+curl -X POST -H "Accept: application/json" -H "namespace: accounts" -H "database: dev" -H "scope: user" -d '{"username":"Tobias","email":"t@h.de","pass":"1234"}' http://localhost:8000/signup
+```

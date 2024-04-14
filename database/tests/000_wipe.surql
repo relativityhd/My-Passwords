@@ -1,0 +1,12 @@
+DELETE FROM is_legacy;
+DELETE FROM is_secure;
+DELETE FROM is_supersecure;
+DELETE FROM is_secured_by;
+DELETE FROM is_sorted_in;
+DELETE FROM use_sso_of;
+DELETE FROM buckets;
+DELETE FROM twofactor;
+DELETE FROM legacy_account;
+DELETE FROM secure_account;
+DELETE FROM supersecure_account;
+DELETE FROM account;

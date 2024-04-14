@@ -1,19 +1,18 @@
-use crate::common::get_user;
 use crate::errors::BucketError;
 use crate::types::{Record, DB};
 use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use specta::Type;
-use surrealdb::sql::Thing;
 
 static COLOR_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"/^#[0-9A-F]{6}$/i").unwrap());
 
-#[derive(Debug, Serialize)]
-struct NewBucket {
-    name: String,
-    color: String,
-    user: Thing,
+#[derive(Debug, Serialize, Deserialize, Type)]
+pub struct Bucket {
+    pub id: String,
+    pub name: String,
+    pub color: String,
+    pub n: u32,
 }
 
 #[tauri::command]
@@ -23,79 +22,47 @@ pub async fn create_bucket(
     bucket_name: &str,
     bucket_color: &str,
 ) -> Result<String, BucketError> {
-    let auth = get_user(db.clone()).await?;
-
     if !COLOR_RE.is_match(bucket_color) {
         return Err(BucketError::InvalidColor(bucket_color.to_string()));
     }
 
+    let sql = "fn::create_bucket($name, $color);";
     let bucket: Vec<Record> = db
-        .create("bucket")
-        .content(NewBucket {
-            name: bucket_name.to_string(),
-            color: bucket_color.to_string(),
-            user: auth,
-        })
-        .await?;
+        .query(sql)
+        .bind(("name", bucket_name))
+        .bind(("color", bucket_color))
+        .await?
+        .take(0)?;
 
     Ok(bucket[0].id.id.to_string())
-}
-
-#[derive(Debug, Serialize, Deserialize, Type)]
-pub struct Bucket {
-    pub id: String,
-    pub name: String,
-    pub color: String,
 }
 
 #[tauri::command]
 #[specta::specta]
 pub async fn get_buckets(db: DB<'_>) -> Result<Vec<Bucket>, BucketError> {
-    let buckets = db.select("bucket").await?;
+    let sql = "SELECT type::string(id) as id, name, color, array::len(<-is_sorted_in<-account) as n FROM bucket;";
+    let buckets: Vec<Bucket> = db.query(sql).await?.take(0)?;
     Ok(buckets)
 }
 
+// TODO: Edit bucket
+
 #[tauri::command]
 #[specta::specta]
-pub async fn recolor_bucket(
-    db: DB<'_>,
-    bucket_id: &str,
-    bucket_color: &str,
-) -> Result<String, BucketError> {
-    if !COLOR_RE.is_match(bucket_color) {
-        return Err(BucketError::InvalidColor(bucket_color.to_string()));
-    }
-    let bucket = db
-        .update::<Option<Record>>(("bucket", bucket_id))
-        .content(("color", bucket_color.to_string()))
-        .await?
-        .ok_or(BucketError::NotFound(bucket_id.to_string()))?;
-    Ok(bucket.id.id.to_string())
+pub async fn check_bucket_is_empty(db: DB<'_>, bucket_id: &str) -> Result<bool, BucketError> {
+    let sql = "RETURN array::len(SELECT * FROM is_sorted_in WHERE out = $bucket);";
+    let n: Option<u32> = db.query(sql).bind(("bucket", bucket_id)).await?.take(0)?;
+    let n = n.ok_or(BucketError::NotFound(bucket_id.to_string()))?;
+    Ok(n == 0)
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn rename_bucket(
-    db: DB<'_>,
-    bucket_id: &str,
-    bucket_name: &str,
-) -> Result<String, BucketError> {
-    let bucket = db
-        .update::<Option<Record>>(("bucket", bucket_id))
-        .content(("name", bucket_name))
+pub async fn delete_bucket(db: DB<'_>, bucket_id: &str) -> Result<(), BucketError> {
+    let sql = "fn::delete_bucket($bucket);";
+    db.query(sql)
+        .bind(("bucket", bucket_id))
         .await?
-        .ok_or(BucketError::NotFound(bucket_id.to_string()))?;
-    Ok(bucket.id.id.to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn delete_bucket(db: DB<'_>, bucket_id: &str) -> Result<String, BucketError> {
-    // TODO: Check if bucket is empty
-
-    let bucket = db
-        .delete::<Option<Record>>(("bucket", bucket_id))
-        .await?
-        .ok_or(BucketError::NotFound(bucket_id.to_string()))?;
-    Ok(bucket.id.id.to_string())
+        .take::<Option<Record>>(0)?;
+    Ok(())
 }

@@ -11,10 +11,12 @@
 	import '@material/web/iconbutton/icon-button';
 	import '@material/web/tabs/tabs';
 	import '@material/web/tabs/secondary-tab';
-	import Recents from '$lib/Recents.svelte';
-	import Buckets from '$lib/Buckets.svelte';
+	import Recents from '$lib/container/Recents.svelte';
+	import Buckets from '$lib/container/Buckets.svelte';
+	import Search from '$lib/container/Search.svelte';
 	import type { MdTabs } from '@material/web/tabs/tabs';
 	import CreateSecure from '$lib/CreateSecure.svelte';
+	import type { Bucket } from '$lib/bindings.js';
 
 	let password = 'SuperLongandStrongPassword';
 	function updatePassword(event: CustomEvent<string>) {
@@ -28,10 +30,17 @@
 	let activeTabIndex = 0;
 	let tabs: MdTabs;
 
-	let activeContent = 'new'; // default content
+	let activeContent = 'search'; // default content
 
 	function switchContent(content: string) {
 		activeContent = content;
+	}
+
+	export let data;
+
+	let buckets: Bucket[] = [];
+	$: if (data) {
+		buckets = data.buckets;
 	}
 </script>
 
@@ -58,9 +67,7 @@
 		>
 			<!-- Search -->
 			<div class="search container">
-				<md-outlined-text-field name="search" label="Search">
-					<md-icon slot="leading-icon">search</md-icon>
-				</md-outlined-text-field>
+				<Search on:password={updatePassword} />
 
 				<div class="button-row">
 					<md-filled-button
@@ -86,13 +93,21 @@
 
 			<!-- Buckets -->
 			<div class="buckets container">
-				<Buckets />
+				<Buckets {buckets} />
 			</div>
 
 			<!-- SSO -->
 			<div class="manage container">
 				<md-outlined-button href="/sso" trailing-icon>
 					Manage accounts <md-icon slot="icon">folder_open</md-icon>
+				</md-outlined-button>
+
+				<md-outlined-button href="/sso" trailing-icon>
+					Manage buckets <md-icon slot="icon">category</md-icon>
+				</md-outlined-button>
+
+				<md-outlined-button href="/sso" trailing-icon>
+					Manage 2FA <md-icon slot="icon">encrypted</md-icon>
 				</md-outlined-button>
 			</div>
 		</div>
@@ -145,13 +160,14 @@
 <style scoped>
 	.grid-container {
 		display: grid;
-		grid-template-columns: 4fr 1fr;
+		grid-template-columns: auto;
 		grid-template-rows: auto;
 		grid-gap: 16px;
 		grid-template-areas:
-			'search search'
-			'last-used last-used'
-			'buckets manage';
+			'search'
+			'last-used'
+			'buckets'
+			'manage';
 
 		place-items: stretch;
 		place-content: stretch;

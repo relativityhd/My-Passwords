@@ -1,3 +1,5 @@
+use std::sync::PoisonError;
+
 use serde::Serialize;
 use thiserror::Error;
 
@@ -7,6 +9,10 @@ pub enum AuthError {
     Db(#[from] surrealdb::Error),
     #[error("IO error: {0:?}")]
     Io(#[from] std::io::Error),
+    #[error("PIN Convertion error: {0:?}")]
+    PinConvertion(#[from] std::array::TryFromSliceError),
+    #[error("The PIN mutex was poisoned")]
+    PinPoisonError(String),
     #[error("App data directory not found")]
     AppDataNotFound,
     #[error("Invalid UTF-8 in cookie file: {0:?}")]
@@ -24,6 +30,12 @@ impl Serialize for AuthError {
     }
 }
 
+impl<T> From<PoisonError<T>> for AuthError {
+    fn from(e: PoisonError<T>) -> Self {
+        AuthError::PinPoisonError(e.to_string()).into()
+    }
+}
+
 #[derive(Debug, Serialize, Error)]
 pub enum BucketError {
     #[error("Database error: {0:?}")]
@@ -36,7 +48,7 @@ pub enum BucketError {
     NotFound(String),
 }
 
-#[derive(Debug, Serialize, Error)]
+#[derive(Debug, Error)]
 pub enum AccountError {
     #[error("Database error: {0:?}")]
     Db(#[from] surrealdb::Error),
@@ -56,6 +68,25 @@ pub enum AccountError {
     CorruptedInstitution(String),
     #[error("Database is probably corrupted: No TwoFactor Authentification found with id two_factor:{0}")]
     CorruptedTwoFactor(String),
+    #[error("The PIN mutex was poisoned")]
+    PinPoisonError(String),
+    #[error("The PIN was not found")]
+    PinNotFound,
+}
+
+impl Serialize for AccountError {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(self.to_string().as_ref())
+    }
+}
+
+impl<T> From<PoisonError<T>> for AccountError {
+    fn from(e: PoisonError<T>) -> Self {
+        AccountError::PinPoisonError(e.to_string()).into()
+    }
 }
 
 #[derive(Debug, Serialize, Error)]

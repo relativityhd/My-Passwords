@@ -10,9 +10,12 @@ mod types;
 
 use handlers::*;
 use specta::collect_types;
+use std::sync::Arc;
 use surrealdb::engine::remote::ws::Ws;
 use surrealdb::Surreal;
 use tauri_specta::ts;
+use tokio::sync::Mutex;
+use types::PinState;
 
 #[tokio::main]
 async fn main() {
@@ -22,22 +25,15 @@ async fn main() {
             auth::signup,
             auth::signout,
             auth::is_authenticated,
+            auth::is_pinned,
+            auth::store_pin,
             buckets::create_bucket,
             buckets::get_buckets,
-            buckets::recolor_bucket,
-            buckets::rename_bucket,
             buckets::delete_bucket,
-            accounts::secure_live_input,
-            accounts::create_secure,
-            accounts::get_secure,
-            accounts::delete_secure,
-            accounts::get_supersecure,
-            accounts::delete_supersecure,
-            accounts::create_sso,
-            accounts::get_sso,
-            accounts::delete_sso,
-            accounts::search,
-            accounts::search_bucket,
+            search::search,
+            search::search_bucket,
+            accounts::secure::secure_live_input,
+            accounts::secure::get_secure_password,
             // accounts::create_supersecure,
         ],
         "../src/lib/bindings.ts",
@@ -52,30 +48,25 @@ async fn main() {
         .await
         .expect("Failed to use namespace");
 
+    let pin = Arc::new(Mutex::new(PinState { val: None }));
+
     tauri::Builder::default()
         .manage(db)
+        .manage(pin)
         .invoke_handler(tauri::generate_handler![
             auth::signin,
             auth::signup,
             auth::signout,
             auth::is_authenticated,
-            accounts::secure_live_input,
-            accounts::create_secure,
-            accounts::get_secure,
-            accounts::delete_secure,
-            accounts::create_supersecure,
-            accounts::get_supersecure,
-            accounts::delete_supersecure,
-            accounts::create_sso,
-            accounts::get_sso,
-            accounts::delete_sso,
-            accounts::search,
-            accounts::search_bucket,
+            auth::is_pinned,
+            auth::store_pin,
             buckets::create_bucket,
             buckets::get_buckets,
-            buckets::recolor_bucket,
-            buckets::rename_bucket,
             buckets::delete_bucket,
+            search::search,
+            search::search_bucket,
+            accounts::secure::secure_live_input,
+            accounts::secure::get_secure_password,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
