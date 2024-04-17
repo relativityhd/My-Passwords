@@ -10,7 +10,7 @@
 	import '@material/web/divider/divider';
 	import '@material/web/iconbutton/icon-button';
 	import { DateTime } from 'luxon';
-	import EditSecure from '$lib/forms/EditSecure.svelte';
+	import EditSuperSecure from '$lib/forms/EditSuperSecure.svelte';
 	import { deleteAccount } from '$lib/bindings';
 	import { goto } from '$app/navigation';
 
@@ -103,6 +103,22 @@
 				<md-list-item>
 					Industry: {data.account.industry}
 				</md-list-item>
+				<md-divider />
+				<md-list-item>
+					Specials: {data.account.specials}
+				</md-list-item>
+				<md-divider />
+				<md-list-item>
+					Seed: {data.account.seed}
+				</md-list-item>
+				<md-divider />
+				<md-list-item>
+					Min Length: {data.account.min}
+				</md-list-item>
+				<md-divider />
+				<md-list-item>
+					Max Length: {data.account.max}
+				</md-list-item>
 				{#if data.account.website}
 					<md-divider />
 					<md-list-item>
@@ -148,7 +164,7 @@
 				<md-icon>content_copy</md-icon>
 			</md-filled-icon-button>
 		</div>
-		<EditSecure
+		<EditSuperSecure
 			account={data.account}
 			id={data.id}
 			buckets={data.buckets}

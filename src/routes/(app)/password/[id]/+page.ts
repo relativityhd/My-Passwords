@@ -22,5 +22,7 @@ export async function load({ params }) {
 	const mode = await getMode(params.id);
 	if (mode === 'Secure') {
 		goto(`/password/secure/${params.id}`);
+	} else if (mode === 'SuperSecure') {
+		goto(`/password/supersecure/${params.id}`);
 	}
 }

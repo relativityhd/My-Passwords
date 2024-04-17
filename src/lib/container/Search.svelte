@@ -87,7 +87,7 @@
 	}
 	.result {
 		position: absolute;
-		width: calc(100% - 48px);
+		width: min(calc(100% - 48px), 1000px);
 		margin-top: 56px;
 		margin-left: 24px;
 		margin-right: 24px;

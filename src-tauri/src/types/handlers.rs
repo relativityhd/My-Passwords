@@ -4,6 +4,24 @@ use specta::Type;
 use crate::types::{Industry, Mode};
 
 #[derive(Deserialize, Serialize, Type)]
+pub struct SuperSecureOverview {
+    pub institution: String,
+    pub industry: Industry,
+    pub identity: String,
+    pub specials: String,
+    pub seed: u32,
+    pub min: u32,
+    pub max: u32,
+    pub mode: Mode,
+    pub created: String,
+    pub recovery: Option<String>,
+    pub website: Option<String>,
+    pub alias: Vec<String>,
+    pub bucket: Option<Bucket>,
+    pub twofactor: Option<TwoFactor>,
+}
+
+#[derive(Deserialize, Serialize, Type)]
 pub struct SecureOverview {
     pub institution: String,
     pub industry: Industry,
@@ -15,6 +33,30 @@ pub struct SecureOverview {
     pub alias: Vec<String>,
     pub bucket: Option<Bucket>,
     pub twofactor: Option<TwoFactor>,
+}
+
+#[derive(Serialize, Deserialize, Type)]
+pub struct AccountMetadata {
+    pub institution: String,
+    pub recovery: Option<String>,
+    pub website: Option<String>,
+    pub alias: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize, Type)]
+pub struct SuperSecureSpecifics {
+    pub industry: Industry,
+    pub identity: String,
+    pub specials: String,
+    pub seed: u32,
+    pub min: u32,
+    pub max: u32,
+}
+
+#[derive(Serialize, Deserialize, Type)]
+pub struct SecureSpecifics {
+    pub industry: Industry,
+    pub identity: String,
 }
 
 #[derive(Serialize, Deserialize, Type)]

@@ -6,7 +6,9 @@ DEFINE FIELD industry ON supersecure_account
   TYPE string;
 DEFINE FIELD identity ON supersecure_account
   TYPE string;
-DEFINE FIELD pin ON supersecure_account
+DEFINE FIELD specials ON supersecure_account
+  TYPE string;
+DEFINE FIELD seed ON supersecure_account
   TYPE int;
 DEFINE FIELD min_length ON supersecure_account
   TYPE int;

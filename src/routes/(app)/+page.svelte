@@ -15,7 +15,8 @@
 	import Buckets from '$lib/container/Buckets.svelte';
 	import Search from '$lib/container/Search.svelte';
 	import type { MdTabs } from '@material/web/tabs/tabs';
-	import CreateSecure from '$lib/CreateSecure.svelte';
+	import CreateSecure from '$lib/forms/CreateSecure.svelte';
+	import CreateSuperSecure from '$lib/forms/CreateSuperSecure.svelte';
 	import type { Bucket } from '$lib/bindings.js';
 
 	let password = 'SuperLongandStrongPassword';
@@ -31,10 +32,6 @@
 	let tabs: MdTabs;
 
 	let activeContent = 'search'; // default content
-
-	function switchContent(content: string) {
-		activeContent = content;
-	}
 
 	export let data;
 
@@ -134,7 +131,7 @@
 			</div>
 			<md-tabs
 				aria-label="Action tabs"
-				activeTabIndex={1}
+				activeTabIndex={0}
 				autoActivate="true"
 				on:change={() => (activeTabIndex = tabs.activeTabIndex)}
 				bind:this={tabs}
@@ -151,7 +148,7 @@
 				<CreateSecure on:password={updatePassword} {buckets} />
 			</div>
 			<div role="tabpanel" id="panel-two" aria-labelledby="tab-two" hidden={activeTabIndex !== 1}>
-				Super Secure
+				<CreateSuperSecure on:password={updatePassword} {buckets} />
 			</div>
 		</div>
 	{/if}
@@ -184,6 +181,8 @@
 	}
 	.search {
 		grid-area: search;
+		max-width: 1000px;
+		margin: 0 auto;
 	}
 
 	.search .button-row {
@@ -203,6 +202,11 @@
 
 	.manage {
 		grid-area: manage;
+	}
+
+	.action {
+		max-width: 800px;
+		margin: 0 auto;
 	}
 
 	.password {

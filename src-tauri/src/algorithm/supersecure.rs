@@ -1,4 +1,5 @@
 use crate::{errors::GenerationError, types::Industry};
+use itertools::Itertools;
 
 struct WordLengthRange {
     absolute_min: usize,
@@ -215,7 +216,7 @@ fn try_generation(
     account_name: &str,
     pin: usize,
     special_chars: &str,
-    year: usize,
+    seed: usize,
     is_ww: bool,
     greek_range: &WordLengthRange,
     egyptian_range: &WordLengthRange,
@@ -228,12 +229,39 @@ fn try_generation(
     let roman = get_roman_number(pin, roman_range);
     let ww = get_world_wonder(institution, industry, account_name, pin, is_ww);
     let numbers = (pin * secret.len()) % 999;
-    match year % 3 {
-        0 => format!("{}{}{}{}{}{}", egyptian, ww, numbers, greek, special, roman),
-        1 => format!("{}{}{}{}{}{}", greek, special, ww, numbers, egyptian, roman),
-        2 => format!("{}{}{}{}{}{}", egyptian, ww, numbers, greek, special, roman),
-        _ => format!("{}{}{}{}{}{}", greek, special, ww, numbers, egyptian, roman),
+
+    // If seed >= 120 expect it to be a year and handle it like in the old algorithm
+    if seed >= 120 {
+        return match seed % 3 {
+            0 => format!("{}{}{}{}{}{}", egyptian, ww, numbers, greek, special, roman),
+            1 => format!("{}{}{}{}{}{}", greek, special, ww, numbers, egyptian, roman),
+            2 => format!("{}{}{}{}{}{}", egyptian, ww, numbers, greek, special, roman),
+            _ => format!("{}{}{}{}{}{}", greek, special, ww, numbers, egyptian, roman),
+        };
     }
+
+    // New version: seed decides the order of the parts
+    // First part is either greek or egyptian
+    // Rest is pseudo-random
+    let (first, parts) = match seed % 2 {
+        0 => (greek, [egyptian, special, roman, ww, numbers.to_string()]),
+        1 => (egyptian, [greek, special, roman, ww, numbers.to_string()]),
+        _ => unreachable!(),
+    };
+    let mut position_permutations = (0..parts.len()).permutations(5);
+    // 120 = 5! / (5-5)! (all permutations of 5 elements)
+    let pidx = seed % 120;
+    // Unwrap is safe because we know that we use mod over the length of the iterator
+    let positions = position_permutations.nth(pidx).unwrap();
+    let parts = positions
+        .iter()
+        .map(|&i| parts[i].as_str())
+        .collect::<Vec<&str>>();
+
+    format!(
+        "{}{}{}{}{}{}",
+        first, parts[0], parts[1], parts[2], parts[3], parts[4]
+    )
 }
 
 pub fn gen_super_pw(
@@ -245,7 +273,7 @@ pub fn gen_super_pw(
     min_length: usize,
     max_length: usize,
     special_chars: &str,
-    year: usize,
+    seed: usize,
 ) -> Result<String, GenerationError> {
     let mut greek_range = WordLengthRange {
         absolute_min: 2,
@@ -289,7 +317,7 @@ pub fn gen_super_pw(
             account_name,
             pin,
             special_chars,
-            year,
+            seed,
             is_ww,
             &greek_range,
             &egyptian_range,
@@ -313,7 +341,7 @@ pub fn gen_super_pw(
             CurrentRange::Roman => &mut roman_range,
         };
         let is_min_less_than_max = change_range.current_min < change_range.current_max;
-        if is_min_less_than_max {
+        if !is_min_less_than_max {
             continue;
         }
 

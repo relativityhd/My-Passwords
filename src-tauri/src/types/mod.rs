@@ -3,6 +3,7 @@ use specta::Type;
 use surrealdb::sql::Thing;
 pub mod industry;
 pub mod mode;
+use crate::errors::AccountError;
 use serde::Serialize;
 use std::sync::Arc;
 use surrealdb::engine::remote::ws::Client;
@@ -26,3 +27,8 @@ pub(crate) struct LocalCreds {
 
 pub type DB<'a> = tauri::State<'a, Surreal<Client>>;
 pub type LC<'a> = tauri::State<'a, Arc<Mutex<Option<LocalCreds>>>>;
+
+pub async fn extract_lc(lc: &LC<'_>) -> Result<LocalCreds, AccountError> {
+    let state = lc.lock().await;
+    state.clone().ok_or(AccountError::PinNotFound)
+}

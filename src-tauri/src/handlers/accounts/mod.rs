@@ -1,6 +1,7 @@
 use crate::errors::AccountError;
 use crate::types::{handlers::ListResult, Mode, DB};
 pub mod secure;
+pub mod supersecure;
 
 #[tauri::command]
 #[specta::specta]

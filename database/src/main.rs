@@ -143,7 +143,7 @@ async fn setup_test_data() {
 
         LET $msauth = fn::create_twofactor('Microsoft Authentification', 'A70');
 
-        LET $msacc = fn::create_supersecure_account('tobiashoelzer@hotmail.com', 'Tech', 1111, 10, 26, 'Microsoft', '3MTMwMzQ3ODU', 'https://microsoft.com', none, $homebucket, $msauth);
+        LET $msacc = fn::create_supersecure_account('tobiashoelzer@hotmail.com', 'Tech', '&$%$!', 123, 10, 26, 'Microsoft', '3MTMwMzQ3ODU', 'https://microsoft.com', none, $homebucket, $msauth);
         fn::create_secure_account('tobiashoelzer@hotmail.com', 'Games', 'Faceit', none, none, none, $homebucket, none);
         fn::create_secure_account('tobiashoelzer@hotmail.com', 'Social', 'Instagram', none, none, none, $homebucket, none);
         fn::create_secure_account('tobiashoelzer@hotmail.com', 'Social', 'Signal', none, none, none, none, none);

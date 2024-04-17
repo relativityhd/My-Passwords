@@ -14,22 +14,18 @@
 	}
 
 	let secret_element: MdOutlinedTextField;
-	let secret_error_message = '';
 	let pin_element: MdOutlinedTextField;
-	let pin_error_message = '';
 
 	function savePin() {
 		let new_pin = parseInt(pin_element.value);
 		if (isNaN(new_pin)) {
-			pin_error_message = 'PIN must be numeric';
-			return;
+			pin_element.setCustomValidity('PIN must be numeric');
+		} else {
+			pin_element.setCustomValidity('');
 		}
-		if (new_pin.toString().length != 4) {
-			pin_error_message = 'PIN must be exactly 4 digits long';
-			return;
-		}
-		if (secret_element.value == '') {
-			secret_error_message = 'Secret cannot be empty';
+		pin_element.reportValidity();
+		secret_element.reportValidity();
+		if (!pin_element.validity.valid || !secret_element.validity.valid) {
 			return;
 		}
 		let new_lc = {
@@ -42,7 +38,6 @@
 			})
 			.catch((err) => {
 				console.log(err);
-				pin_error_message = 'Some error occured...';
 			});
 	}
 
@@ -79,15 +74,27 @@
 				bind:this={secret_element}
 				label="Secret"
 				type="password"
-				error={secret_error_message != ''}
-				error-text={secret_error_message}
+				minLength="2"
+				maxLength="20"
+				required
+				on:change={secret_element.reportValidity}
 			/>
 			<md-outlined-text-field
 				bind:this={pin_element}
 				label="PIN"
 				type="password"
-				error={pin_error_message != ''}
-				error-text={pin_error_message}
+				required
+				minLength="4"
+				maxLength="4"
+				on:change={() => {
+					let new_pin = parseInt(pin_element.value);
+					if (isNaN(new_pin)) {
+						pin_element.setCustomValidity('PIN must be numeric');
+					} else {
+						pin_element.setCustomValidity('');
+					}
+					pin_element.reportValidity();
+				}}
 			/>
 			<md-filled-button on:click={savePin} on:keypress={savePin} role="button" tabindex="0"
 				>Save PIN</md-filled-button

@@ -81,6 +81,8 @@ pub enum AccountError {
     PinPoisonError(String),
     #[error("The PIN was not found")]
     PinNotFound,
+    #[error("Password could not be generated:{0}")]
+    PasswordGeneration(#[from] GenerationError),
     #[error("Database is probably corrupted: No ID was returned from the database.")]
     NoID,
 }

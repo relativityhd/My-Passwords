@@ -82,21 +82,45 @@ export function getSecureOverview(id: string) {
     return invoke()<[SecureOverview, string]>("get_secure_overview", { id })
 }
 
-export function createSecure(institutionName: string, institutionWebsite: string | null, institutionAlias: string[], identity: string, recovery: string | null, industry: Industry, bucketid: string | null, twofactorid: string | null) {
-    return invoke()<string>("create_secure", { institutionName,institutionWebsite,institutionAlias,identity,recovery,industry,bucketid,twofactorid })
+export function createSecure(metadata: AccountMetadata, specifics: SecureSpecifics, bucketid: string | null, twofactorid: string | null) {
+    return invoke()<string>("create_secure", { metadata,specifics,bucketid,twofactorid })
 }
 
-export function editSecure(id: string, institutionName: string, institutionWebsite: string | null, institutionAlias: string[], identity: string, recovery: string | null, industry: Industry, bucketid: string | null, twofactorid: string | null) {
-    return invoke()<string>("edit_secure", { id,institutionName,institutionWebsite,institutionAlias,identity,recovery,industry,bucketid,twofactorid })
+export function editSecure(id: string, metadata: AccountMetadata, specifics: SecureSpecifics, bucketid: string | null, twofactorid: string | null) {
+    return invoke()<string>("edit_secure", { id,metadata,specifics,bucketid,twofactorid })
 }
 
-export type Bucket = { id: string; name: string; color: string; n: number }
-export type SearchResult = { id: string; account_type: Mode; institution: string; identity: string; bucket: ResultBucket | null }
-export type Mode = "Secure" | "SuperSecure" | "LegacySecure" | "Sso"
-export type ListResult = { id: string; account_type: Mode; institution: string; identity: string; bucket: ResultBucket | null; twofactor: ResultTwofactor | null }
-export type Industry = "Tech" | "Games" | "Social" | "Finance" | "Shopping" | "Science" | "Other"
-export type ResultBucket = { name: string; color: string }
-export type SecureOverview = { institution: string; industry: Industry; identity: string; mode: Mode; created: string; recovery: string | null; website: string | null; alias: string[]; bucket: Bucket | null; twofactor: TwoFactor | null }
+export function supersecureLiveInput(institution: string, identity: string, industry: Industry, specials: string, seed: number, min: number, max: number) {
+    return invoke()<string>("supersecure_live_input", { institution,identity,industry,specials,seed,min,max })
+}
+
+export function getSupersecurePassword(id: string) {
+    return invoke()<string>("get_supersecure_password", { id })
+}
+
+export function getSupersecureOverview(id: string) {
+    return invoke()<[SuperSecureOverview, string]>("get_supersecure_overview", { id })
+}
+
+export function createSupersecure(metadata: AccountMetadata, specifics: SuperSecureSpecifics, bucketid: string | null, twofactorid: string | null) {
+    return invoke()<string>("create_supersecure", { metadata,specifics,bucketid,twofactorid })
+}
+
+export function editSupersecure(id: string, metadata: AccountMetadata, specifics: SuperSecureSpecifics, bucketid: string | null, twofactorid: string | null) {
+    return invoke()<string>("edit_supersecure", { id,metadata,specifics,bucketid,twofactorid })
+}
+
 export type LocalCreds = { pin: number; secret: string }
-export type ResultTwofactor = { name: string; device: string }
+export type SecureOverview = { institution: string; industry: Industry; identity: string; mode: Mode; created: string; recovery: string | null; website: string | null; alias: string[]; bucket: Bucket | null; twofactor: TwoFactor | null }
+export type Mode = "Secure" | "SuperSecure" | "LegacySecure" | "Sso"
+export type Bucket = { id: string; name: string; color: string; n: number }
+export type Industry = "Tech" | "Games" | "Social" | "Finance" | "Shopping" | "Science" | "Other"
+export type SearchResult = { id: string; account_type: Mode; institution: string; identity: string; bucket: ResultBucket | null }
+export type ListResult = { id: string; account_type: Mode; institution: string; identity: string; bucket: ResultBucket | null; twofactor: ResultTwofactor | null }
+export type SecureSpecifics = { industry: Industry; identity: string }
+export type AccountMetadata = { institution: string; recovery: string | null; website: string | null; alias: string[] }
+export type ResultBucket = { name: string; color: string }
+export type SuperSecureOverview = { institution: string; industry: Industry; identity: string; specials: string; seed: number; min: number; max: number; mode: Mode; created: string; recovery: string | null; website: string | null; alias: string[]; bucket: Bucket | null; twofactor: TwoFactor | null }
+export type SuperSecureSpecifics = { industry: Industry; identity: string; specials: string; seed: number; min: number; max: number }
 export type TwoFactor = { id: string; name: string; device: string }
+export type ResultTwofactor = { name: string; device: string }

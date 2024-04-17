@@ -6,7 +6,8 @@
 	} from '@material/material-color-utilities';
 
 	// Get the theme from a hex color
-	const theme = themeFromSourceColor(argbFromHex('#825f6b'));
+	let sourcecolor = argbFromHex('#825f6b');
+	const theme = themeFromSourceColor(sourcecolor);
 
 	// Print out the theme as JSON
 	console.log(JSON.stringify(theme, null, 2));

@@ -50,7 +50,8 @@ DEFINE FUNCTION fn::create_secure_account(
 DEFINE FUNCTION fn::create_supersecure_account(
   $identity: string,
   $industry: string,
-  $pin: int,
+  $specials: string,
+  $seed: int,
   $min_length: int,
   $max_length: int,
   $institution: string,
@@ -71,7 +72,8 @@ DEFINE FUNCTION fn::create_supersecure_account(
   LET $supersecure_account = CREATE ONLY supersecure_account CONTENT {
     identity: $identity,
     industry: $industry,
-    pin: $pin,
+    specials: $specials,
+    seed: $seed,
     min_length: $min_length,
     max_length: $max_length
   };
@@ -161,11 +163,12 @@ DEFINE FUNCTION fn::edit_secure_account(
 };
 
 
-DEFINE FUNCTION fn::edit_super_secure_account(
+DEFINE FUNCTION fn::edit_supersecure_account(
   $account_id: record,
   $identity: string,
   $industry: string,
-  $pin: int,
+  $specials: string,
+  $seed: int,
   $min_length: int,
   $max_length: int,
   $institution: string,
@@ -175,7 +178,7 @@ DEFINE FUNCTION fn::edit_super_secure_account(
   $bucket_id: option<record>,
   $twofactor_id: option<record>
 ) {
-  LET $new_account_id = fn::create_supersecure_account($identity, $industry, $pin, $min_length, $max_length, $institution, $recovery, $website, $alias, $bucket_id, $twofactor_id);
+  LET $new_account_id = fn::create_supersecure_account($identity, $industry, $specials, $seed, $min_length, $max_length, $institution, $recovery, $website, $alias, $bucket_id, $twofactor_id);
   -- Delete old account
   fn::delete_account($account_id);
   RETURN $new_account_id;

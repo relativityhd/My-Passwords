@@ -41,22 +41,29 @@ cargo run
 - [x] Edit Secure
 - [x] Delete Secure
 - [x] Store PIN and SECRET on local
-- [ ] Store Special-Chars in DB
-- [ ] For Super-Secure-Case: Microsoft and IBM Overleaf use "Year" for the algo -> Use creation date instead
+- [x] Store Special-Chars in DB
+- [ ] Store Recent Searched / Popular Searches
+- [x] For Super-Secure-Case: Replace "year" with "seed" -> must be equal to seed = year%3 so that seed%3
 - [x] Super Secure Algo
-- [ ] Create Super Secure
-- [ ] Super Secure Password Site
+- [x] Create Super Secure
+- [x] Super Secure Password Site
 - [ ] Create SSO
 - [ ] SSO Password Site
+- [ ] Create Hand-Written Passwords
 - [x] List of all Passwords
 - [x] Create Buckets
 - [ ] Manage Buckets
 - [x] Delete Buckets
 - [ ] Create 2FA
 - [ ] Manage 2FA
-- [ ] Dashboard with Statistics
-- [ ] Random Bucket Wallpaper
-- [ ] Wallpaper Credits auf Logic Page und in pot. Footer
 - [ ] Dynamic Username Top left corner
-- [ ] Store Recent Searched / Popular Searches
-- [ ] Drag n Drop resorting of accounts into Buckets on the List Page
+- [ ] Wallpaper Credits auf Logic Page und in pot. Footer
+- [ ] Input Sanitation
+- [ ] Reorga main page -> Create Bucket must be possible from there
+- [ ] Run Clippy and remove all println / dbg / console.log and all other warnings
+- [ ] Version 2
+  - [ ] Dashboard with Statistics
+  - [ ] Random Bucket Wallpaper
+  - [ ] Custom Theme builder einbauen & themes local speichern
+  - [ ] Options Page
+  - [ ] Drag n Drop resorting of accounts into Buckets on the List Page

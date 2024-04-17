@@ -1,73 +1,99 @@
-use crate::algorithm::gen_pw;
+use crate::algorithm::gen_super_pw;
 use crate::errors::AccountError;
 use crate::types::{
-    handlers::{AccountMetadata, SecureOverview, SecureSpecifics},
+    extract_lc,
+    handlers::{AccountMetadata, SuperSecureOverview, SuperSecureSpecifics},
     Industry, LocalCreds, DB, LC,
 };
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::Thing;
 
 #[derive(Deserialize, Serialize)]
-struct SecurePasswordData {
+struct SuperSecurePasswordData {
     institution: String,
     industry: Industry,
     identity: String,
+    specials: String,
+    seed: usize,
+    min: usize,
+    max: usize,
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn secure_live_input(
+pub async fn supersecure_live_input(
     lc: LC<'_>,
     institution: &str,
     identity: &str,
     industry: Industry,
+    specials: String,
+    seed: u32,
+    min: u32,
+    max: u32,
 ) -> Result<String, AccountError> {
-    let state = lc.lock().await;
-    let local_creds: LocalCreds =
-        <Option<LocalCreds> as Clone>::clone(&state).ok_or(AccountError::PinNotFound)?;
-    let pw = gen_pw(institution, &industry, &local_creds.secret, identity);
+    let local_creds: LocalCreds = extract_lc(&lc).await?;
+
+    let pw = gen_super_pw(
+        institution,
+        &industry,
+        &local_creds.secret,
+        identity,
+        local_creds.pin as usize,
+        min as usize,
+        max as usize,
+        &specials,
+        seed as usize,
+    )?;
     Ok(pw)
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn get_secure_password(db: DB<'_>, lc: LC<'_>, id: &str) -> Result<String, AccountError> {
-    let state = lc.lock().await;
-    let local_creds: LocalCreds =
-        <Option<LocalCreds> as Clone>::clone(&state).ok_or(AccountError::PinNotFound)?;
-    let secret = local_creds.secret;
+pub async fn get_supersecure_password(
+    db: DB<'_>,
+    lc: LC<'_>,
+    id: &str,
+) -> Result<String, AccountError> {
+    let local_creds: LocalCreds = extract_lc(&lc).await?;
+
     // Convert id to Record
     let sql = "SELECT institution,
-        (->is_secure->secure_account.industry)[0] as industry,
-        (->is_secure->secure_account.identity)[0] as identity
+        (->is_supersecure->supersecure_account.industry)[0] as industry,
+        (->is_supersecure->supersecure_account.identity)[0] as identity,
+        (->is_supersecure->supersecure_account.specials)[0] as specials,
+        (->is_supersecure->supersecure_account.seed)[0] as seed,
+        (->is_supersecure->supersecure_account.min_length)[0] as min,
+        (->is_supersecure->supersecure_account.max_length)[0] as max
         FROM ONLY type::thing('account', $account);";
     let id = id.split(':').last().unwrap();
     let data = db
         .query(sql)
         .bind(("account", id))
         .await?
-        .take::<Option<SecurePasswordData>>(0)?
+        .take::<Option<SuperSecurePasswordData>>(0)?
         .ok_or(AccountError::AccountNotFound(id.to_string()))?;
-    let pw = gen_pw(
+    let pw = gen_super_pw(
         &data.institution,
         &data.industry,
-        &secret.to_string(),
+        &local_creds.secret,
         &data.identity,
-    );
+        local_creds.pin as usize,
+        data.min as usize,
+        data.max as usize,
+        &data.specials,
+        data.seed as usize,
+    )?;
     Ok(pw)
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn get_secure_overview(
+pub async fn get_supersecure_overview(
     db: DB<'_>,
     lc: LC<'_>,
     id: &str,
-) -> Result<(SecureOverview, String), AccountError> {
-    let state = lc.lock().await;
-    let local_creds: LocalCreds =
-        <Option<LocalCreds> as Clone>::clone(&state).ok_or(AccountError::PinNotFound)?;
-    let secret = local_creds.secret;
+) -> Result<(SuperSecureOverview, String), AccountError> {
+    let local_creds: LocalCreds = extract_lc(&lc).await?;
 
     let sql = "SELECT
         institution,
@@ -76,8 +102,12 @@ pub async fn get_secure_overview(
         alias,
         account_type as mode,
         type::string(created) as created,
-        (->is_secure->secure_account.industry)[0] as industry,
-        (->is_secure->secure_account.identity)[0] as identity,
+        (->is_supersecure->supersecure_account.industry)[0] as industry,
+        (->is_supersecure->supersecure_account.identity)[0] as identity,
+        (->is_supersecure->supersecure_account.specials)[0] as specials,
+        (->is_supersecure->supersecure_account.seed)[0] as seed,
+        (->is_supersecure->supersecure_account.min_length)[0] as min,
+        (->is_supersecure->supersecure_account.max_length)[0] as max,
         (SELECT
             type::string(id) as id,
             color,
@@ -91,33 +121,42 @@ pub async fn get_secure_overview(
         .query(sql)
         .bind(("account", id))
         .await?
-        .take::<Option<SecureOverview>>(0)?
+        .take::<Option<SuperSecureOverview>>(0)?
         .ok_or(AccountError::AccountNotFound(id.to_string()))?;
-    let pw = gen_pw(
+    let pw = gen_super_pw(
         &data.institution,
         &data.industry,
-        &secret.to_string(),
+        &local_creds.secret,
         &data.identity,
-    );
+        local_creds.pin as usize,
+        data.min as usize,
+        data.max as usize,
+        &data.specials,
+        data.seed as usize,
+    )?;
 
     Ok((data, pw))
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn create_secure(
+pub async fn create_supersecure(
     db: DB<'_>,
     metadata: AccountMetadata,
-    specifics: SecureSpecifics,
+    specifics: SuperSecureSpecifics,
     bucketid: Option<&str>,
     twofactorid: Option<&str>,
 ) -> Result<String, AccountError> {
     let bucket = bucketid.map(|b| Thing::from(("bucket", b.split(':').last().unwrap())));
     let twofactor = twofactorid.map(|t| Thing::from(("twofactor", t.split(':').last().unwrap())));
     let sql = "
-        fn::create_secure_account(
+        fn::create_supersecure_account(
             $identity,
             $industry,
+            $specials,
+            $seed,
+            $min_length,
+            $max_length,
             $institution,
             $recovery,
             $website,
@@ -130,6 +169,10 @@ pub async fn create_secure(
         .query(sql)
         .bind(("identity", specifics.identity))
         .bind(("industry", specifics.industry))
+        .bind(("specials", specifics.specials))
+        .bind(("seed", specifics.seed))
+        .bind(("min_length", specifics.min))
+        .bind(("max_length", specifics.max))
         .bind(("institution", metadata.institution))
         .bind(("recovery", metadata.recovery))
         .bind(("website", metadata.website))
@@ -144,11 +187,11 @@ pub async fn create_secure(
 
 #[tauri::command]
 #[specta::specta]
-pub async fn edit_secure(
+pub async fn edit_supersecure(
     db: DB<'_>,
     id: &str,
     metadata: AccountMetadata,
-    specifics: SecureSpecifics,
+    specifics: SuperSecureSpecifics,
     bucketid: Option<&str>,
     twofactorid: Option<&str>,
 ) -> Result<String, AccountError> {
@@ -156,10 +199,14 @@ pub async fn edit_secure(
     let twofactor = twofactorid.map(|t| Thing::from(("twofactor", t.split(':').last().unwrap())));
     dbg!(&bucket, &twofactor);
     let sql = "
-        fn::edit_secure_account(
+        fn::edit_supersecure_account(
             type::thing('account', $account),
             $identity,
             $industry,
+            $specials,
+            $seed,
+            $min_length,
+            $max_length,
             $institution,
             $recovery,
             $website,
@@ -174,6 +221,10 @@ pub async fn edit_secure(
         .bind(("account", id))
         .bind(("identity", specifics.identity))
         .bind(("industry", specifics.industry))
+        .bind(("specials", specifics.specials))
+        .bind(("seed", specifics.seed))
+        .bind(("min_length", specifics.min))
+        .bind(("max_length", specifics.max))
         .bind(("institution", metadata.institution))
         .bind(("recovery", metadata.recovery))
         .bind(("website", metadata.website))

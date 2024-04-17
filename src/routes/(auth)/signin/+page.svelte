@@ -1,24 +1,32 @@
 <script lang="ts">
 	import '@material/web/button/filled-button';
+	import '@material/web/icon/icon';
 	import '@material/web/textfield/filled-text-field';
+	import type { MdFilledTextField } from '@material/web/textfield/filled-text-field';
+	import type { MdCheckbox } from '@material/web/checkbox/checkbox';
 	import '@material/web/checkbox/checkbox';
 	import { signin } from '$lib/bindings';
 	import { goto } from '$app/navigation';
 
-	let formElement: HTMLFormElement;
+	let identifierElement: MdFilledTextField;
+	let passwordElement: MdFilledTextField;
+	let rememberElement: MdCheckbox;
+
 	let isValid = false;
 
-	function onChange(e: Event) {
-		isValid = formElement.checkValidity();
-	}
+	async function handleSubmit() {
+		let identifier = identifierElement.value;
+		let password = passwordElement.value;
+		let remember = rememberElement.value === 'on';
 
-	async function handleSubmit(e: SubmitEvent) {
-		const formData = new FormData(e.target as HTMLFormElement);
-		let identifier = formData.get('identifier') as string;
-		let password = formData.get('password') as string;
-		let remember = (formData.get('remember') as string) === 'on';
+		console.log(identifierElement?.validity.valid);
+		console.log(passwordElement?.validity.valid);
+
 		await signin(identifier, password, remember).catch((err) => {
 			console.log(err);
+			isValid = false;
+			passwordElement.setCustomValidity('Invalid credentials');
+			passwordElement.reportValidity();
 			throw err;
 		});
 		goto('/');
@@ -29,36 +37,58 @@
 	<h1>Sign In</h1>
 	<p>No account yet? <a href="/signup">Sign Up</a></p>
 </div>
-
-<form on:submit|preventDefault={handleSubmit} bind:this={formElement}>
+<div class="right">
 	<div class="inputs">
 		<md-filled-text-field
-			name="identifier"
+			bind:this={identifierElement}
 			label="Email or Name"
 			type="text"
 			value=""
 			required
-			on:change={onChange}
-			on:input={onChange}
+			on:change={() => {
+				passwordElement.setCustomValidity('');
+				identifierElement.reportValidity();
+				isValid = identifierElement.validity.valid && passwordElement.validity.valid;
+			}}
+			on:input={() => {
+				passwordElement.setCustomValidity('');
+				identifierElement.reportValidity();
+				isValid = identifierElement.validity.valid && passwordElement.validity.valid;
+			}}
 		/>
 		<md-filled-text-field
-			name="password"
+			bind:this={passwordElement}
 			label="Password"
 			value=""
 			type="password"
 			required
-			on:change={onChange}
-			on:input={onChange}
+			on:change={() => {
+				passwordElement.setCustomValidity('');
+				passwordElement.reportValidity();
+				isValid = identifierElement.validity.valid && passwordElement.validity.valid;
+			}}
+			on:input={() => {
+				passwordElement.setCustomValidity('');
+				passwordElement.reportValidity();
+				isValid = identifierElement.validity.valid && passwordElement.validity.valid;
+			}}
 		/>
 	</div>
 	<div class="remember-label">
 		<label for="remember"> Remember me </label>
-		<md-checkbox id="remember" name="remember" />
+		<md-checkbox id="remember" bind:this={rememberElement} />
 	</div>
 	<div class="buttons">
-		<md-filled-button disabled={!isValid}>Sign In</md-filled-button>
+		<md-filled-button
+			trailing-icon
+			disabled={!isValid}
+			on:click={handleSubmit}
+			on:keypress={handleSubmit}
+			role="button"
+			tabindex="0">Sign In <md-icon slot="icon">arrow_forward</md-icon></md-filled-button
+		>
 	</div>
-</form>
+</div>
 
 <style scoped>
 	.inputs {
@@ -79,10 +109,9 @@
 	}
 
 	.buttons {
-		align-items: flex-start;
 		display: flex;
-		flex-wrap: wrap;
-		padding: 16px 0;
+		flex-flow: row wrap;
 		justify-content: flex-end;
+		margin-top: 8px;
 	}
 </style>

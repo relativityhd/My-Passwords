@@ -4,7 +4,7 @@
 	import '@material/web/button/outlined-button.js';
 	import '@material/web/divider/divider';
 	import AccountCard from '$lib/cards/AccountCard.svelte';
-	import CreateBucket from '$lib/CreateBucket.svelte';
+	import CreateBucket from '$lib/forms/CreateBucket.svelte';
 	import { deleteBucket } from '$lib/bindings.js';
 
 	async function triggerDelete(id: string) {
