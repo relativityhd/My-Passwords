@@ -3,9 +3,8 @@
 	import '@material/web/button/filled-button.js';
 	import '@material/web/textfield/outlined-text-field.js';
 	import type { MdOutlinedTextField } from '@material/web/textfield/outlined-text-field';
-	import { signout } from '$lib/bindings';
+	import { signout, storeLc } from '$lib/bindings';
 	import { goto } from '$app/navigation';
-	import { storePin } from '$lib/bindings';
 
 	async function signout_user() {
 		await signout().catch((err) => {
@@ -14,6 +13,8 @@
 		goto('/signin');
 	}
 
+	let secret_element: MdOutlinedTextField;
+	let secret_error_message = '';
 	let pin_element: MdOutlinedTextField;
 	let pin_error_message = '';
 
@@ -23,7 +24,19 @@
 			pin_error_message = 'PIN must be numeric';
 			return;
 		}
-		storePin(new_pin)
+		if (new_pin.toString().length != 4) {
+			pin_error_message = 'PIN must be exactly 4 digits long';
+			return;
+		}
+		if (secret_element.value == '') {
+			secret_error_message = 'Secret cannot be empty';
+			return;
+		}
+		let new_lc = {
+			pin: new_pin,
+			secret: secret_element.value
+		};
+		storeLc(new_lc)
 			.then(() => {
 				data.isPinned = true;
 			})
@@ -41,7 +54,12 @@
 		<h3>Hello Tobias!</h3>
 	</div>
 	<div class="logout">
-		<md-outlined-button on:click={signout_user}>Logout</md-outlined-button>
+		<md-outlined-button
+			on:click={signout_user}
+			on:keypress={signout_user}
+			role="button"
+			tabindex="0">Logout</md-outlined-button
+		>
 	</div>
 </div>
 
@@ -49,13 +67,21 @@
 	<slot />
 {:else}
 	<div class="missing-pin">
-		<h1>Missing PIN</h1>
+		<h1>Missing PIN and Secret</h1>
 		<p>
-			No PIN was found on this device. The PIN is used to generate passwords and is NOT sent across
-			the internet to the cloud. The PIN must be the same across all your devices so a password is
-			generate exactly the same on all devices. The PIN must be completely numeric.
+			No PIN and Secret was found on this device. The PIN and Secret are used to generate passwords
+			and are NOT sent across the internet to the cloud. The PIN and Secret must be the same across
+			all your devices so a password is generate exactly the same on all devices. The PIN must be
+			completely numeric and exactly 4 digits long, the secret can be whatever you want.
 		</p>
 		<div class="actions">
+			<md-outlined-text-field
+				bind:this={secret_element}
+				label="Secret"
+				type="password"
+				error={secret_error_message != ''}
+				error-text={secret_error_message}
+			/>
 			<md-outlined-text-field
 				bind:this={pin_element}
 				label="PIN"
@@ -63,7 +89,9 @@
 				error={pin_error_message != ''}
 				error-text={pin_error_message}
 			/>
-			<md-filled-button on:click={savePin}>Save PIN</md-filled-button>
+			<md-filled-button on:click={savePin} on:keypress={savePin} role="button" tabindex="0"
+				>Save PIN</md-filled-button
+			>
 		</div>
 	</div>
 {/if}

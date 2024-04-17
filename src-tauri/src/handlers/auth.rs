@@ -1,7 +1,9 @@
 use crate::common::get_user;
 use crate::errors::AuthError;
-use crate::types::{DB, PIN};
+use crate::types::{LocalCreds, DB, LC};
+use orion::aead;
 use serde::Serialize;
+use serde_json;
 use std::path::PathBuf;
 use surrealdb::opt::auth::{Jwt, Scope};
 use surrealdb::sql::Thing;
@@ -32,7 +34,7 @@ async fn store_cookie(app_data_dir: Option<PathBuf>, token: Jwt) -> Result<(), A
 pub async fn signout(
     app_handle: tauri::AppHandle,
     db: DB<'_>,
-    pin: PIN<'_>,
+    lc: LC<'_>,
 ) -> Result<(), AuthError> {
     let auth = get_user(db.clone()).await?;
     println!("Sign out user: {}", auth);
@@ -46,8 +48,8 @@ pub async fn signout(
     }
     db.invalidate().await?;
 
-    let mut state = pin.lock().await;
-    state.val = None;
+    let mut state = lc.lock().await;
+    *state = None;
     println!("User signed out");
     Ok(())
 }
@@ -142,15 +144,15 @@ pub async fn signup(
 
 #[tauri::command]
 #[specta::specta]
-pub async fn is_pinned(
+pub async fn has_lc(
     app_handle: tauri::AppHandle,
     db: DB<'_>,
-    pin: PIN<'_>,
+    lc: LC<'_>,
 ) -> Result<bool, AuthError> {
     let auth = get_user(db.clone()).await?;
 
-    let state = pin.lock().await;
-    if state.val.is_some() {
+    let state = lc.lock().await;
+    if state.is_some() {
         return Ok(true);
     }
     drop(state); // Free the lock
@@ -162,29 +164,45 @@ pub async fn is_pinned(
         .ok_or(AuthError::AppDataNotFound)?
         .join(fname);
     if !fpath.exists() {
-        println!("No pin found");
+        println!("No lc found");
         return Ok(false);
     }
+
+    // Use hashed password from user to encrypt lc
+    let userpw = db
+        .query("(SELECT password FROM ONLY $auth).password;")
+        .await?
+        .take::<Option<String>>(0)?
+        .ok_or(AuthError::NoPassword)?;
+
+    // Generate cipher from userpw
+    let key = aead::SecretKey::from_slice(&userpw.as_bytes()[..32])?;
+
     let mut file = File::open(fpath).await?;
     let mut contents = vec![];
     file.read_to_end(&mut contents).await?;
-    let v = u32::from_le_bytes(contents.as_slice().try_into()?);
-    let mut state = pin.lock().await;
-    state.val = Some(v as usize);
+
+    let serialized_lc = aead::open(&key, &contents)?;
+
+    // Deserialize lc
+    let newlc: LocalCreds = serde_json::from_slice(&serialized_lc)?;
+
+    let mut state = lc.lock().await;
+    *state = Some(newlc);
     Ok(true)
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn store_pin(
+pub async fn store_lc(
     app_handle: tauri::AppHandle,
     db: DB<'_>,
-    pin: PIN<'_>,
-    newpin: u32,
+    lc: LC<'_>,
+    newlc: LocalCreds,
 ) -> Result<(), AuthError> {
     let auth = get_user(db.clone()).await?;
 
-    println!("Setting pin");
+    println!("Setting lc");
     let dir = app_handle
         .path_resolver()
         .app_data_dir()
@@ -194,13 +212,25 @@ pub async fn store_pin(
         tokio::fs::create_dir_all(&dir).await?;
     }
     let fname = format!("{}.cache", auth.id);
+    // Use hashed password from user to encrypt lc
+    let userpw = db
+        .query("(SELECT password FROM ONLY $auth).password;")
+        .await?
+        .take::<Option<String>>(0)?
+        .ok_or(AuthError::NoPassword)?;
+
+    // Generate cipher from userpw
+    let key = aead::SecretKey::from_slice(&userpw.as_bytes()[..32])?;
+
+    let serialized_lc = serde_json::to_string(&newlc)?;
+    let encrypted_lc = aead::seal(&key, serialized_lc.as_bytes())?;
+
     let mut file = File::create(dir.join(fname)).await?;
 
-    // Convert pin to bytes
-    let bytepin = newpin.to_le_bytes();
-    file.write_all(&bytepin).await?;
+    // Convert lc to bytes
+    file.write_all(&encrypted_lc).await?;
 
-    let mut state = pin.lock().await;
-    state.val = Some(newpin as usize);
+    let mut state = lc.lock().await;
+    *state = Some(newlc);
     Ok(())
 }

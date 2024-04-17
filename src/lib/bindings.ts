@@ -26,12 +26,12 @@ export function isAuthenticated() {
     return invoke()<boolean>("is_authenticated")
 }
 
-export function isPinned() {
-    return invoke()<boolean>("is_pinned")
+export function hasLc() {
+    return invoke()<boolean>("has_lc")
 }
 
-export function storePin(newpin: number) {
-    return invoke()<null>("store_pin", { newpin })
+export function storeLc(newlc: LocalCreds) {
+    return invoke()<null>("store_lc", { newlc })
 }
 
 export function createBucket(bucketName: string, bucketColor: string) {
@@ -97,5 +97,6 @@ export type ListResult = { id: string; account_type: Mode; institution: string; 
 export type Industry = "Tech" | "Games" | "Social" | "Finance" | "Shopping" | "Science" | "Other"
 export type ResultBucket = { name: string; color: string }
 export type SecureOverview = { institution: string; industry: Industry; identity: string; mode: Mode; created: string; recovery: string | null; website: string | null; alias: string[]; bucket: Bucket | null; twofactor: TwoFactor | null }
+export type LocalCreds = { pin: number; secret: string }
 export type ResultTwofactor = { name: string; device: string }
 export type TwoFactor = { id: string; name: string; device: string }

@@ -1,6 +1,6 @@
 use crate::algorithm::gen_pw;
 use crate::errors::AccountError;
-use crate::types::{handlers::SecureOverview, Industry, DB, PIN};
+use crate::types::{handlers::SecureOverview, Industry, LocalCreds, DB, LC};
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::Thing;
 
@@ -14,26 +14,26 @@ struct SecurePasswordData {
 #[tauri::command]
 #[specta::specta]
 pub async fn secure_live_input(
-    pin: PIN<'_>,
+    lc: LC<'_>,
     institution: &str,
     identity: &str,
     industry: Industry,
 ) -> Result<String, AccountError> {
-    let secret = pin.lock().await.val.ok_or(AccountError::PinNotFound)?;
-    let pw = gen_pw(institution, &industry, &secret.to_string(), identity);
+    let state = lc.lock().await;
+    let local_creds: LocalCreds =
+        <Option<LocalCreds> as Clone>::clone(&state).ok_or(AccountError::PinNotFound)?;
+    let pw = gen_pw(institution, &industry, &local_creds.secret, identity);
     Ok(pw)
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn get_secure_password(
-    db: DB<'_>,
-    pin: PIN<'_>,
-    id: &str,
-) -> Result<String, AccountError> {
-    let secret = pin.lock().await.val.ok_or(AccountError::PinNotFound)?;
-    drop(pin); // Free the lock
-               // Convert id to Record
+pub async fn get_secure_password(db: DB<'_>, lc: LC<'_>, id: &str) -> Result<String, AccountError> {
+    let state = lc.lock().await;
+    let local_creds: LocalCreds =
+        <Option<LocalCreds> as Clone>::clone(&state).ok_or(AccountError::PinNotFound)?;
+    let secret = local_creds.secret;
+    // Convert id to Record
     let sql = "SELECT institution,
         (->is_secure->secure_account.industry)[0] as industry,
         (->is_secure->secure_account.identity)[0] as identity
@@ -58,11 +58,13 @@ pub async fn get_secure_password(
 #[specta::specta]
 pub async fn get_secure_overview(
     db: DB<'_>,
-    pin: PIN<'_>,
+    lc: LC<'_>,
     id: &str,
 ) -> Result<(SecureOverview, String), AccountError> {
-    let secret = pin.lock().await.val.ok_or(AccountError::PinNotFound)?;
-    drop(pin);
+    let state = lc.lock().await;
+    let local_creds: LocalCreds =
+        <Option<LocalCreds> as Clone>::clone(&state).ok_or(AccountError::PinNotFound)?;
+    let secret = local_creds.secret;
 
     let sql = "SELECT
         institution,

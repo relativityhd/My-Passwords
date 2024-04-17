@@ -2,6 +2,7 @@ use std::sync::PoisonError;
 
 use serde::Serialize;
 use thiserror::Error;
+use tokio::sync::oneshot::error;
 
 #[derive(Debug, Error)]
 pub enum AuthError {
@@ -17,6 +18,12 @@ pub enum AuthError {
     AppDataNotFound,
     #[error("Invalid UTF-8 in cookie file: {0:?}")]
     InvalidUtf8(#[from] std::string::FromUtf8Error),
+    #[error("Serialization error: {0:?}")]
+    Serialization(#[from] serde_json::Error),
+    #[error("Encryption error: {0:?}")]
+    Encryption(#[from] orion::errors::UnknownCryptoError),
+    #[error("No password found in the database")]
+    NoPassword,
     #[error("Not signed in")]
     NotSignedIn,
 }
@@ -111,4 +118,10 @@ pub enum SsoError {
     Auth(#[from] AuthError),
     #[error("No SSO Institution found with id institution:{0}")]
     NotFound(String),
+}
+
+#[derive(Debug, Serialize, Error)]
+pub enum GenerationError {
+    #[error("Unable to generate password.")]
+    UnableToGenerate,
 }

@@ -40,11 +40,16 @@ cargo run
 - [x] Secure Password Site
 - [x] Edit Secure
 - [x] Delete Secure
-- [ ] Super Secure Algo
+- [x] Store PIN and SECRET on local
+- [ ] Store Special-Chars in DB
+- [ ] For Super-Secure-Case: Microsoft and IBM Overleaf use "Year" for the algo -> Use creation date instead
+- [x] Super Secure Algo
 - [ ] Create Super Secure
 - [ ] Super Secure Password Site
+- [ ] Create SSO
+- [ ] SSO Password Site
 - [x] List of all Passwords
-- [ ] Create Buckets
+- [x] Create Buckets
 - [ ] Manage Buckets
 - [x] Delete Buckets
 - [ ] Create 2FA

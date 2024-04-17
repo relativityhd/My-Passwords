@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use specta::Type;
 use surrealdb::sql::Thing;
 pub mod industry;
 pub mod mode;
@@ -17,10 +18,11 @@ pub struct Record {
     pub id: Thing,
 }
 
-#[derive(Serialize, Clone)]
-pub(crate) struct PinState {
-    pub val: Option<usize>,
+#[derive(Serialize, Deserialize, Clone, Type)]
+pub(crate) struct LocalCreds {
+    pub pin: u32,
+    pub secret: String,
 }
 
 pub type DB<'a> = tauri::State<'a, Surreal<Client>>;
-pub type PIN<'a> = tauri::State<'a, Arc<Mutex<PinState>>>;
+pub type LC<'a> = tauri::State<'a, Arc<Mutex<Option<LocalCreds>>>>;

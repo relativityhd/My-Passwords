@@ -15,7 +15,7 @@ use surrealdb::engine::remote::ws::Ws;
 use surrealdb::Surreal;
 use tauri_specta::ts;
 use tokio::sync::Mutex;
-use types::PinState;
+use types::LocalCreds;
 
 #[tokio::main]
 async fn main() {
@@ -25,8 +25,8 @@ async fn main() {
             auth::signup,
             auth::signout,
             auth::is_authenticated,
-            auth::is_pinned,
-            auth::store_pin,
+            auth::has_lc,
+            auth::store_lc,
             buckets::create_bucket,
             buckets::get_buckets,
             buckets::delete_bucket,
@@ -54,7 +54,7 @@ async fn main() {
         .await
         .expect("Failed to use namespace");
 
-    let pin = Arc::new(Mutex::new(PinState { val: None }));
+    let pin = Arc::new(Mutex::new(None::<LocalCreds>));
 
     tauri::Builder::default()
         .manage(db)
@@ -64,8 +64,8 @@ async fn main() {
             auth::signup,
             auth::signout,
             auth::is_authenticated,
-            auth::is_pinned,
-            auth::store_pin,
+            auth::has_lc,
+            auth::store_lc,
             buckets::create_bucket,
             buckets::get_buckets,
             buckets::delete_bucket,
