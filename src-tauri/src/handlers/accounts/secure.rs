@@ -1,6 +1,7 @@
 use crate::algorithm::gen_pw;
 use crate::errors::AccountError;
 use crate::types::{
+    extract_lc,
     handlers::{AccountMetadata, SecureOverview, SecureSpecifics},
     Industry, LocalCreds, DB, LC,
 };
@@ -32,9 +33,7 @@ pub async fn secure_live_input(
 #[tauri::command]
 #[specta::specta]
 pub async fn get_secure_password(db: DB<'_>, lc: LC<'_>, id: &str) -> Result<String, AccountError> {
-    let state = lc.lock().await;
-    let local_creds: LocalCreds =
-        <Option<LocalCreds> as Clone>::clone(&state).ok_or(AccountError::PinNotFound)?;
+    let local_creds = extract_lc(&lc).await?;
     let secret = local_creds.secret;
     // Convert id to Record
     let sql = "SELECT institution,
@@ -64,9 +63,7 @@ pub async fn get_secure_overview(
     lc: LC<'_>,
     id: &str,
 ) -> Result<(SecureOverview, String), AccountError> {
-    let state = lc.lock().await;
-    let local_creds: LocalCreds =
-        <Option<LocalCreds> as Clone>::clone(&state).ok_or(AccountError::PinNotFound)?;
+    let local_creds = extract_lc(&lc).await?;
     let secret = local_creds.secret;
 
     let sql = "SELECT

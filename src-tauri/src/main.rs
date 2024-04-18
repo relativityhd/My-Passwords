@@ -45,7 +45,13 @@ async fn main() {
             accounts::supersecure::get_supersecure_password,
             accounts::supersecure::get_supersecure_overview,
             accounts::supersecure::create_supersecure,
-            accounts::supersecure::edit_supersecure
+            accounts::supersecure::edit_supersecure,
+            accounts::sso::get_sso_overview,
+            accounts::sso::create_sso,
+            accounts::sso::edit_sso,
+            accounts::sso::list_nosso_accounts,
+            accounts::legacy::get_legacy_password,
+            accounts::legacy::get_legacy_overview
         ],
         "../src/lib/bindings.ts",
     )
@@ -89,7 +95,13 @@ async fn main() {
             accounts::supersecure::get_supersecure_password,
             accounts::supersecure::get_supersecure_overview,
             accounts::supersecure::create_supersecure,
-            accounts::supersecure::edit_supersecure
+            accounts::supersecure::edit_supersecure,
+            accounts::sso::get_sso_overview,
+            accounts::sso::create_sso,
+            accounts::sso::edit_sso,
+            accounts::sso::list_nosso_accounts,
+            accounts::legacy::get_legacy_password,
+            accounts::legacy::get_legacy_overview
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

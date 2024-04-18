@@ -17,6 +17,7 @@
 	import type { MdTabs } from '@material/web/tabs/tabs';
 	import CreateSecure from '$lib/forms/CreateSecure.svelte';
 	import CreateSuperSecure from '$lib/forms/CreateSuperSecure.svelte';
+	import CreateSso from '$lib/forms/CreateSSO.svelte';
 	import type { Bucket } from '$lib/bindings.js';
 
 	let password = 'SuperLongandStrongPassword';
@@ -142,6 +143,9 @@
 				<md-secondary-tab id="tab-two" aria-controls="panel-two">
 					<md-icon slot="icon">shield_lock</md-icon> Super Secure
 				</md-secondary-tab>
+				<md-secondary-tab id="tab-three" aria-controls="panel-three">
+					<md-icon slot="icon">apartment</md-icon> Sso
+				</md-secondary-tab>
 			</md-tabs>
 
 			<div role="tabpanel" id="panel-one" aria-labelledby="tab-one" hidden={activeTabIndex !== 0}>
@@ -149,6 +153,14 @@
 			</div>
 			<div role="tabpanel" id="panel-two" aria-labelledby="tab-two" hidden={activeTabIndex !== 1}>
 				<CreateSuperSecure on:password={updatePassword} {buckets} />
+			</div>
+			<div
+				role="tabpanel"
+				id="panel-three"
+				aria-labelledby="tab-three"
+				hidden={activeTabIndex !== 2}
+			>
+				<CreateSso {buckets} accounts={data.nosso_accounts} />
 			</div>
 		</div>
 	{/if}

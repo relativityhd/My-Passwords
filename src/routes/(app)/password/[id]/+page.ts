@@ -24,5 +24,11 @@ export async function load({ params }) {
 		goto(`/password/secure/${params.id}`);
 	} else if (mode === 'SuperSecure') {
 		goto(`/password/supersecure/${params.id}`);
+	} else if (mode === 'Sso') {
+		goto(`/password/sso/${params.id}`);
+	} else if (mode === 'LegacySecure') {
+		goto(`/password/legacy/${params.id}`);
+	} else {
+		throw new Error(`Unknown mode: ${mode} for account ${params.id}`);
 	}
 }

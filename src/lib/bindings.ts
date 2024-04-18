@@ -110,17 +110,43 @@ export function editSupersecure(id: string, metadata: AccountMetadata, specifics
     return invoke()<string>("edit_supersecure", { id,metadata,specifics,bucketid,twofactorid })
 }
 
+export function getSsoOverview(id: string) {
+    return invoke()<SsoOverview>("get_sso_overview", { id })
+}
+
+export function createSso(ssoaccountId: string, metadata: AccountMetadata, bucketid: string | null, twofactorid: string | null) {
+    return invoke()<string>("create_sso", { ssoaccountId,metadata,bucketid,twofactorid })
+}
+
+export function editSso(id: string, ssoaccountId: string, metadata: AccountMetadata, bucketid: string | null, twofactorid: string | null) {
+    return invoke()<string>("edit_sso", { id,ssoaccountId,metadata,bucketid,twofactorid })
+}
+
+export function listNossoAccounts() {
+    return invoke()<SsoListResult[]>("list_nosso_accounts")
+}
+
+export function getLegacyPassword(id: string) {
+    return invoke()<string>("get_legacy_password", { id })
+}
+
+export function getLegacyOverview(id: string) {
+    return invoke()<[SecureOverview, string]>("get_legacy_overview", { id })
+}
+
 export type LocalCreds = { pin: number; secret: string }
-export type SecureOverview = { institution: string; industry: Industry; identity: string; mode: Mode; created: string; recovery: string | null; website: string | null; alias: string[]; bucket: Bucket | null; twofactor: TwoFactor | null }
 export type Mode = "Secure" | "SuperSecure" | "LegacySecure" | "Sso"
-export type Bucket = { id: string; name: string; color: string; n: number }
-export type Industry = "Tech" | "Games" | "Social" | "Finance" | "Shopping" | "Science" | "Other"
-export type SearchResult = { id: string; account_type: Mode; institution: string; identity: string; bucket: ResultBucket | null }
-export type ListResult = { id: string; account_type: Mode; institution: string; identity: string; bucket: ResultBucket | null; twofactor: ResultTwofactor | null }
-export type SecureSpecifics = { industry: Industry; identity: string }
-export type AccountMetadata = { institution: string; recovery: string | null; website: string | null; alias: string[] }
-export type ResultBucket = { name: string; color: string }
-export type SuperSecureOverview = { institution: string; industry: Industry; identity: string; specials: string; seed: number; min: number; max: number; mode: Mode; created: string; recovery: string | null; website: string | null; alias: string[]; bucket: Bucket | null; twofactor: TwoFactor | null }
-export type SuperSecureSpecifics = { industry: Industry; identity: string; specials: string; seed: number; min: number; max: number }
 export type TwoFactor = { id: string; name: string; device: string }
+export type SearchResult = { id: string; account_type: Mode; institution: string; identity: string; bucket: ResultBucket | null }
+export type SuperSecureOverview = { institution: string; industry: Industry; identity: string; specials: string; seed: number; min: number; max: number; mode: Mode; created: string; recovery: string | null; website: string | null; alias: string[]; bucket: Bucket | null; twofactor: TwoFactor | null }
+export type Industry = "Tech" | "Games" | "Social" | "Finance" | "Shopping" | "Science" | "Other"
+export type AccountMetadata = { institution: string; recovery: string | null; website: string | null; alias: string[] }
+export type SsoListResult = { id: string; institution: string; bucket: ResultBucket | null }
 export type ResultTwofactor = { name: string; device: string }
+export type Bucket = { id: string; name: string; color: string; n: number }
+export type SecureSpecifics = { industry: Industry; identity: string }
+export type ListResult = { id: string; account_type: Mode; institution: string; identity: string; bucket: ResultBucket | null; twofactor: ResultTwofactor | null }
+export type SecureOverview = { institution: string; industry: Industry; identity: string; mode: Mode; created: string; recovery: string | null; website: string | null; alias: string[]; bucket: Bucket | null; twofactor: TwoFactor | null }
+export type ResultBucket = { name: string; color: string }
+export type SuperSecureSpecifics = { industry: Industry; identity: string; specials: string; seed: number; min: number; max: number }
+export type SsoOverview = { ssoaccount_id: string; ssoaccount_institution: string; institution: string; mode: Mode; created: string; recovery: string | null; website: string | null; alias: string[]; bucket: Bucket | null; twofactor: TwoFactor | null }

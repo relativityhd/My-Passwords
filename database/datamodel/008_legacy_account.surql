@@ -4,8 +4,6 @@ DEFINE TABLE legacy_account SCHEMAFULL
 
 DEFINE FIELD industry ON legacy_account
   TYPE int;
-DEFINE FIELD identity ON legacy_account
-  TYPE string;
 
 DEFINE FIELD owner ON legacy_account
   TYPE record<user>

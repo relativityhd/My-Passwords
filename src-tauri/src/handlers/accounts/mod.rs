@@ -1,6 +1,8 @@
 use crate::errors::AccountError;
 use crate::types::{handlers::ListResult, Mode, DB};
+pub mod legacy;
 pub mod secure;
+pub mod sso;
 pub mod supersecure;
 
 #[tauri::command]
