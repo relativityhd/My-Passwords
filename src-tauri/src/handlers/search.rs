@@ -11,7 +11,8 @@ pub async fn search(db: DB<'_>, search_term: &str) -> Result<Vec<SearchResult>, 
             account_type,
             ((->is_secure->secure_account.identity)[0] or
                 (->is_supersecure->supersecure_account.identity)[0] or
-                string::concat('SSO::', (->use_sso_of->account.institution)[0])
+                (->use_sso_of->account.institution)[0] or
+                'legacy'
             ) as identity,
             (SELECT color, name FROM (->is_sorted_in->bucket))[0] as bucket
         FROM account
@@ -35,7 +36,8 @@ pub async fn search_bucket(
             account_type,
             ((->is_secure->secure_account.identity)[0] or
                 (->is_supersecure->supersecure_account.identity)[0] or
-                string::concat('SSO::', (->use_sso_of->account.institution)[0])
+                (->use_sso_of->account.institution)[0] or
+                'legacy'
             ) as identity,
             (SELECT color, name FROM (->is_sorted_in->bucket))[0] as bucket
         FROM account

@@ -8,3 +8,5 @@ export async function load({ params }) {
 	console.log(password);
 	return { id: params.id, account, password, buckets, deletelocked };
 }
+
+export const prerender = false;

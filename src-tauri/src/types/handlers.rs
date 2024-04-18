@@ -49,6 +49,19 @@ pub struct SecureOverview {
     pub twofactor: Option<TwoFactor>,
 }
 
+#[derive(Deserialize, Serialize, Type)]
+pub struct LegacyOverview {
+    pub institution: String,
+    pub industry: Industry,
+    pub mode: Mode,
+    pub created: String,
+    pub recovery: Option<String>,
+    pub website: Option<String>,
+    pub alias: Vec<String>,
+    pub bucket: Option<Bucket>,
+    pub twofactor: Option<TwoFactor>,
+}
+
 #[derive(Serialize, Deserialize, Type)]
 pub struct AccountMetadata {
     pub institution: String,
@@ -98,6 +111,16 @@ pub struct ResultBucket {
 pub struct ResultTwofactor {
     pub name: String,
     pub device: String,
+}
+
+#[derive(Serialize, Deserialize, Type)]
+pub struct PopularResult {
+    pub id: String,
+    pub account_type: Mode,
+    pub institution: String,
+    pub identity: String,
+    pub bucket: Option<ResultBucket>,
+    pub calls: u32,
 }
 
 #[derive(Serialize, Deserialize, Type)]

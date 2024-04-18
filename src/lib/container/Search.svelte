@@ -4,7 +4,12 @@
 	import type { MdOutlinedTextField } from '@material/web/textfield/outlined-text-field';
 	import SearchResultContainer from '$lib/container/SearchResult.svelte';
 
-	import { search, getSecurePassword, getSupersecurePassword } from '$lib/bindings';
+	import {
+		search,
+		getSecurePassword,
+		getSupersecurePassword,
+		getLegacyPassword
+	} from '$lib/bindings';
 	import type { SearchResult } from '$lib/bindings';
 
 	const dispatch = createEventDispatcher();
@@ -49,28 +54,25 @@
 		}, delay);
 	}
 
+	let getfn = {
+		Secure: getSecurePassword,
+		SuperSecure: getSupersecurePassword,
+		LegacySecure: getLegacyPassword
+	};
+
 	function selectPassword(event: CustomEvent<SearchResult>) {
 		search_results = [];
 
-		if (event.detail.account_type === 'Secure') {
-			getSecurePassword(event.detail.id)
-				.then((password) => {
-					dispatch('password', password);
-				})
-				.catch((error) => {
-					console.error(error);
-				});
-		} else if (event.detail.account_type === 'SuperSecure') {
-			getSupersecurePassword(event.detail.id)
-				.then((password) => {
-					dispatch('password', password);
-				})
-				.catch((error) => {
-					console.error(error);
-				});
-		} else if (event.detail.account_type === 'Sso') {
-			goto(`/password/sso/${event.detail.id}`);
-		}
+		if (event.detail.account_type === 'Sso') return goto(`/password/sso/${event.detail.id}`);
+		let fn = getfn[event.detail.account_type];
+		if (!fn) return;
+		fn(event.detail.id)
+			.then((password) => {
+				dispatch('password', password);
+			})
+			.catch((error) => {
+				console.error(error);
+			});
 	}
 </script>
 

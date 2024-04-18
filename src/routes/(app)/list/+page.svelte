@@ -5,11 +5,77 @@
 	import '@material/web/divider/divider';
 	import AccountCard from '$lib/cards/AccountCard.svelte';
 	import CreateBucket from '$lib/forms/CreateBucket.svelte';
-	import { deleteBucket } from '$lib/bindings.js';
+	import { deleteBucket, loadFromJson } from '$lib/bindings.js';
+	import type { LegacyData, LegacySuperData } from '$lib/bindings.js';
+	import { ask, open } from '@tauri-apps/api/dialog';
+	import { readTextFile } from '@tauri-apps/api/fs';
+
+	type ParsedLegacyAccount = {
+		acc: string;
+		comp: string;
+		key: string;
+		max: string;
+		min: string;
+		mode: boolean;
+		number: number;
+		pin: string;
+		spec: string;
+		type: string;
+		user: string;
+		year: string;
+		__v: number;
+		_id: string;
+	};
 
 	async function triggerDelete(id: string) {
+		let answer = await ask('Are you sure you want to delete this bucket?', {
+			title: 'Delete Bucket',
+			type: 'warning'
+		});
+		console.log(answer);
+		if (!answer) return;
 		await deleteBucket(id);
 		location.reload();
+	}
+
+	async function load_json() {
+		const f = await open({
+			filters: [
+				{
+					name: 'JSON',
+					extensions: ['json']
+				}
+			]
+		});
+		console.log(f);
+		if (!f) return;
+		let data = await readTextFile(f as string);
+		let parsed: ParsedLegacyAccount[] = JSON.parse(data);
+		console.log(parsed);
+		let legacy: LegacyData[] = parsed
+			.filter((a) => !a.mode)
+			.map((a) => {
+				return {
+					institution: a.comp,
+					industry: parseInt(a.type)
+				};
+			});
+		let supers: LegacySuperData[] = parsed
+			.filter((a) => a.mode)
+			.map((a) => {
+				return {
+					institution: a.comp,
+					industry: parseInt(a.type),
+					idendity: a.acc,
+					specials: a.spec,
+					min: parseInt(a.min),
+					max: parseInt(a.max),
+					seed: parseInt(a.year) + 2000
+				};
+			});
+		console.log(legacy, supers);
+
+		await loadFromJson(legacy, supers).catch((e) => console.error(e));
 	}
 
 	export let data;
@@ -51,6 +117,16 @@
 	<md-divider style="margin: 32px 0;" />
 
 	<CreateBucket />
+
+	<md-divider style="margin: 32px 0;" />
+
+	<md-outlined-button
+		on:click={() => load_json()}
+		on:keypress={() => load_json()}
+		role="button"
+		aria-label="Load Legay data from JSON file"
+		tabindex="0">Load Legacy data from JSON file</md-outlined-button
+	>
 </div>
 
 <style>

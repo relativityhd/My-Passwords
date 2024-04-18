@@ -6,7 +6,7 @@ use serde::Serialize;
 use serde_json;
 use std::path::PathBuf;
 use surrealdb::opt::auth::{Jwt, Scope};
-use surrealdb::sql::Thing;
+use surrealdb::sql::{self, Thing};
 use tokio::fs::File;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
@@ -233,4 +233,16 @@ pub async fn store_lc(
     let mut state = lc.lock().await;
     *state = Some(newlc);
     Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_username(db: DB<'_>) -> Result<String, AuthError> {
+    let sql = "(SELECT username FROM ONLY $auth).username;";
+    let username: String = db
+        .query(sql)
+        .await?
+        .take::<Option<String>>(0)?
+        .ok_or(AuthError::NotSignedIn)?;
+    Ok(username)
 }

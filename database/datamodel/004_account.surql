@@ -8,6 +8,9 @@ DEFINE FIELD created ON account
   TYPE datetime
   VALUE $before OR time::now()
   DEFAULT time::now();
+DEFINE FIELD calls ON account
+  TYPE int
+  DEFAULT 0;
 DEFINE FIELD recovery ON account
   TYPE option<string>;
 DEFINE FIELD account_type ON account

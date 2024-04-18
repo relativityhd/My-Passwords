@@ -7,3 +7,5 @@ export async function load({ params }) {
 	console.log(password);
 	return { id: params.id, account, password, deletelocked };
 }
+
+export const prerender = false;

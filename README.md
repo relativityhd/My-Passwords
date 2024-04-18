@@ -34,6 +34,31 @@ cd .\database\
 cargo run
 ```
 
+Start DB on server
+
+```sh
+$ sudo nano /etc/systemd/system/surrealdb.service
+[Unit]
+Description=SurrealDB Server
+After=network.target
+
+[Service]
+ExecStart=/path/to/surrealdb start --strict --auth --user [ROOT_USER_NAME] --pass [ROOT_USER_PASSWORD] file:/home/surreal-runner/mydatabase.db
+Restart=always
+User=surreal-runner
+
+[Install]
+WantedBy=multi-user.target
+
+$ sudo systemctl daemon-reload
+$ sudo systemctl enable surrealdb
+$ sudo systemctl start surrealdb
+```
+
+```sh
+surreal start --strict --auth --user [ROOT_USER_NAME] --pass [ROOT_USER_PASSWORD] 
+```
+
 ## Roadmap
 
 - [x] Create Secure
@@ -50,21 +75,27 @@ cargo run
 - [x] SSO Password Site
 - [x] Legacy Password Site
 - [x] List of all Passwords
-- [ ] Store Recent Searched / Popular Searches
+- [x] Store Recent Searched / Popular Searches
 - [x] Create Buckets
 - [x] Delete Buckets
-- [ ] Manage Buckets
-- [ ] Dynamic Username Top left corner
-- [ ] Wallpaper Credits auf Logic Page und in pot. Footer
-- [ ] Input Sanitation
-- [ ] Reorga main page -> Create Bucket must be possible from there
+- [x] Reorga main page -> Create Bucket must be possible from there
+- [x] Import Script for Legacy
+- [x] Dynamic Username Top left corner
+- [x] Wallpaper Credits auf Logic Page und in pot. Footer
 - [ ] Run Clippy and remove all println / dbg / console.log and all other warnings
+- [ ] GitHub Action aufsetzen
+- [ ] SurrealDB aufsetzen (Mit HTTPS und systemd) https://surrealdb.com/docs/surrealdb/cli/start
 - [ ] Version 2
+  - [ ] Improve Error Handling -> Propably propergate the errors from DB and enrich with more information
+  - [ ] Input Sanitation or general better security
+  - [ ] Make own Delete-Bucket dialog
+  - [ ] Manage Buckets
   - [ ] Create 2FA
   - [ ] Manage 2FA
+  - [ ] Archive - Handling
   - [ ] Dashboard with Statistics
   - [ ] Create Hand-Written Passwords
-  - [ ] Random Bucket Wallpaper
+  - [ ] Random Bucket Wallpaper as theme
   - [ ] Custom Theme builder einbauen & themes local speichern
   - [ ] Options Page
   - [ ] Drag n Drop resorting of accounts into Buckets on the List Page

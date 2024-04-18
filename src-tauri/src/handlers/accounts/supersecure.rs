@@ -1,5 +1,6 @@
 use crate::algorithm::gen_super_pw;
 use crate::errors::AccountError;
+use crate::handlers::accounts::add_call;
 use crate::types::{
     extract_lc,
     handlers::{AccountMetadata, SuperSecureOverview, SuperSecureSpecifics},
@@ -83,6 +84,7 @@ pub async fn get_supersecure_password(
         &data.specials,
         data.seed as usize,
     )?;
+    add_call(db, id).await?;
     Ok(pw)
 }
 

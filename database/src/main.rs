@@ -1,8 +1,14 @@
+#![allow(non_snake_case)]
+
 use std::io::{self, Write};
 use std::path::Path;
 use std::process::Command;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+use serde_json;
+use std::fs::File;
+use std::io::BufReader;
+
 use surrealdb::engine::remote::ws::Ws;
 use surrealdb::opt::auth::Scope;
 use surrealdb::Surreal;
@@ -143,7 +149,7 @@ async fn setup_test_data() {
 
         LET $msauth = fn::create_twofactor('Microsoft Authentification', 'A70');
 
-        LET $msacc = fn::create_supersecure_account('tobiashoelzer@hotmail.com', 'Tech', '&$%$!', 123, 10, 26, 'Microsoft', '3MTMwMzQ3ODU', 'https://microsoft.com', none, $homebucket, $msauth);
+        LET $msacc = fn::create_supersecure_account('tobiashoelzer@hotmail.com', 'Tech', '&$%$!', 13, 10, 26, 'Microsoft', '3MTMwMzQ3ODU', 'https://microsoft.com', none, $homebucket, $msauth);
         fn::create_secure_account('tobiashoelzer@hotmail.com', 'Games', 'Faceit', none, none, none, $homebucket, none);
         fn::create_secure_account('tobiashoelzer@hotmail.com', 'Social', 'Instagram', none, none, none, $homebucket, none);
         fn::create_secure_account('tobiashoelzer@hotmail.com', 'Social', 'Signal', none, none, none, none, none);

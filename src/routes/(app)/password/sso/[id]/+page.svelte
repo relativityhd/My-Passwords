@@ -53,7 +53,7 @@
 			<div class="bucket container">
 				<div class="bucket-info">
 					<md-icon>category</md-icon>
-					<p>Unsorted</p>
+					<p>Bucket: Unsorted</p>
 				</div>
 			</div>
 		{/if}
@@ -72,7 +72,7 @@
 			<div class="twofactor container">
 				<div class="twofactor-info">
 					<md-icon>encrypted</md-icon>
-					<p>Unsecured</p>
+					<p>No 2FA</p>
 				</div>
 			</div>
 		{/if}

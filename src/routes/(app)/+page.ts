@@ -14,13 +14,14 @@ export async function load() {
 }
  */
 
-import { getBuckets, listNossoAccounts } from '$lib/bindings';
+import { getBuckets, listNossoAccounts, getPopular } from '$lib/bindings';
 
 export async function load() {
+	const populars = await getPopular();
 	const buckets = await getBuckets();
 	const nosso_accounts = (await listNossoAccounts()).sort((a, b) =>
 		a.institution.localeCompare(b.institution)
 	);
-	console.log({ buckets, nosso_accounts });
-	return { buckets, nosso_accounts };
+	console.log({ buckets, nosso_accounts, populars });
+	return { buckets, nosso_accounts, populars };
 }

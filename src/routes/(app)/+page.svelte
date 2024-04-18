@@ -11,7 +11,7 @@
 	import '@material/web/iconbutton/icon-button';
 	import '@material/web/tabs/tabs';
 	import '@material/web/tabs/secondary-tab';
-	import Recents from '$lib/container/Recents.svelte';
+	import Popular from '$lib/container/Popular.svelte';
 	import Buckets from '$lib/container/Buckets.svelte';
 	import Search from '$lib/container/Search.svelte';
 	import type { MdTabs } from '@material/web/tabs/tabs';
@@ -68,6 +68,9 @@
 				<Search on:password={updatePassword} />
 
 				<div class="button-row">
+					<md-outlined-button href="/list" trailing-icon>
+						Manage accounts <md-icon slot="icon">folder_open</md-icon>
+					</md-outlined-button>
 					<md-filled-button
 						trailing-icon
 						on:click={() => {
@@ -86,27 +89,12 @@
 
 			<!-- Recents -->
 			<div class="last-used container">
-				<Recents />
+				<Popular populars={data.populars} on:password={updatePassword} />
 			</div>
 
 			<!-- Buckets -->
 			<div class="buckets container">
 				<Buckets {buckets} />
-			</div>
-
-			<!-- SSO -->
-			<div class="manage container">
-				<md-outlined-button href="/list" trailing-icon>
-					Manage accounts <md-icon slot="icon">folder_open</md-icon>
-				</md-outlined-button>
-
-				<md-outlined-button href="/sso" trailing-icon>
-					Manage buckets <md-icon slot="icon">category</md-icon>
-				</md-outlined-button>
-
-				<md-outlined-button href="/sso" trailing-icon>
-					Manage 2FA <md-icon slot="icon">encrypted</md-icon>
-				</md-outlined-button>
 			</div>
 		</div>
 	{:else if activeContent === 'new'}
@@ -175,8 +163,7 @@
 		grid-template-areas:
 			'search'
 			'last-used'
-			'buckets'
-			'manage';
+			'buckets';
 
 		place-items: stretch;
 		place-content: stretch;
@@ -202,6 +189,7 @@
 		flex-flow: row wrap;
 		justify-content: flex-end;
 		margin-top: 8px;
+		gap: 8px;
 	}
 
 	.last-used {
@@ -210,10 +198,6 @@
 
 	.buckets {
 		grid-area: buckets;
-	}
-
-	.manage {
-		grid-area: manage;
 	}
 
 	.action {

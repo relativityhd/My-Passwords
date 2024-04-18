@@ -13,6 +13,7 @@ use specta::collect_types;
 use std::sync::Arc;
 use surrealdb::engine::remote::ws::Ws;
 use surrealdb::Surreal;
+use tauri::Manager;
 use tauri_specta::ts;
 use tokio::sync::Mutex;
 use types::LocalCreds;
@@ -27,6 +28,7 @@ async fn main() {
             auth::is_authenticated,
             auth::has_lc,
             auth::store_lc,
+            auth::get_username,
             buckets::create_bucket,
             buckets::get_buckets,
             buckets::delete_bucket,
@@ -36,6 +38,7 @@ async fn main() {
             accounts::in_sso_use,
             accounts::delete_account,
             accounts::get_all_accounts,
+            accounts::get_popular,
             accounts::secure::secure_live_input,
             accounts::secure::get_secure_password,
             accounts::secure::get_secure_overview,
@@ -51,13 +54,21 @@ async fn main() {
             accounts::sso::edit_sso,
             accounts::sso::list_nosso_accounts,
             accounts::legacy::get_legacy_password,
-            accounts::legacy::get_legacy_overview
+            accounts::legacy::get_legacy_overview,
+            accounts::legacy::load_from_json
         ],
         "../src/lib/bindings.ts",
     )
     .expect("Type export to just work...");
 
-    let db = Surreal::new::<Ws>("127.0.0.1:8000")
+    let db_url = if cfg!(dev_mode) {
+        println!("Running in dev mode");
+        "127.0.0.1:8000"
+    } else {
+        "tobiashoelzer.de:8000"
+    };
+
+    let db = Surreal::new::<Ws>(db_url)
         .await
         .expect("Failed to connect to database");
     db.use_ns("accounts")
@@ -77,6 +88,7 @@ async fn main() {
             auth::is_authenticated,
             auth::has_lc,
             auth::store_lc,
+            auth::get_username,
             buckets::create_bucket,
             buckets::get_buckets,
             buckets::delete_bucket,
@@ -86,6 +98,7 @@ async fn main() {
             accounts::in_sso_use,
             accounts::delete_account,
             accounts::get_all_accounts,
+            accounts::get_popular,
             accounts::secure::secure_live_input,
             accounts::secure::get_secure_password,
             accounts::secure::get_secure_overview,
@@ -101,7 +114,8 @@ async fn main() {
             accounts::sso::edit_sso,
             accounts::sso::list_nosso_accounts,
             accounts::legacy::get_legacy_password,
-            accounts::legacy::get_legacy_overview
+            accounts::legacy::get_legacy_overview,
+            accounts::legacy::load_from_json
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

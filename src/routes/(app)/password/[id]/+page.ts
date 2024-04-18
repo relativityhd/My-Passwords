@@ -32,3 +32,5 @@ export async function load({ params }) {
 		throw new Error(`Unknown mode: ${mode} for account ${params.id}`);
 	}
 }
+
+export const prerender = false;

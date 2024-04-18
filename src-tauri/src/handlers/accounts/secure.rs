@@ -1,5 +1,6 @@
 use crate::algorithm::gen_pw;
 use crate::errors::AccountError;
+use crate::handlers::accounts::add_call;
 use crate::types::{
     extract_lc,
     handlers::{AccountMetadata, SecureOverview, SecureSpecifics},
@@ -53,6 +54,7 @@ pub async fn get_secure_password(db: DB<'_>, lc: LC<'_>, id: &str) -> Result<Str
         &secret.to_string(),
         &data.identity,
     );
+    add_call(db, id).await?;
     Ok(pw)
 }
 

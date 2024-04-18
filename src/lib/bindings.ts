@@ -34,6 +34,10 @@ export function storeLc(newlc: LocalCreds) {
     return invoke()<null>("store_lc", { newlc })
 }
 
+export function getUsername() {
+    return invoke()<string>("get_username")
+}
+
 export function createBucket(bucketName: string, bucketColor: string) {
     return invoke()<string>("create_bucket", { bucketName,bucketColor })
 }
@@ -68,6 +72,10 @@ export function deleteAccount(id: string) {
 
 export function getAllAccounts() {
     return invoke()<ListResult[]>("get_all_accounts")
+}
+
+export function getPopular() {
+    return invoke()<PopularResult[]>("get_popular")
 }
 
 export function secureLiveInput(institution: string, identity: string, industry: Industry) {
@@ -131,22 +139,30 @@ export function getLegacyPassword(id: string) {
 }
 
 export function getLegacyOverview(id: string) {
-    return invoke()<[SecureOverview, string]>("get_legacy_overview", { id })
+    return invoke()<[LegacyOverview, string]>("get_legacy_overview", { id })
+}
+
+export function loadFromJson(data: LegacyData[], superdata: LegacySuperData[]) {
+    return invoke()<null>("load_from_json", { data,superdata })
 }
 
 export type LocalCreds = { pin: number; secret: string }
-export type Mode = "Secure" | "SuperSecure" | "LegacySecure" | "Sso"
-export type TwoFactor = { id: string; name: string; device: string }
-export type SearchResult = { id: string; account_type: Mode; institution: string; identity: string; bucket: ResultBucket | null }
-export type SuperSecureOverview = { institution: string; industry: Industry; identity: string; specials: string; seed: number; min: number; max: number; mode: Mode; created: string; recovery: string | null; website: string | null; alias: string[]; bucket: Bucket | null; twofactor: TwoFactor | null }
-export type Industry = "Tech" | "Games" | "Social" | "Finance" | "Shopping" | "Science" | "Other"
+export type PopularResult = { id: string; account_type: Mode; institution: string; identity: string; bucket: ResultBucket | null; calls: number }
 export type AccountMetadata = { institution: string; recovery: string | null; website: string | null; alias: string[] }
-export type SsoListResult = { id: string; institution: string; bucket: ResultBucket | null }
-export type ResultTwofactor = { name: string; device: string }
-export type Bucket = { id: string; name: string; color: string; n: number }
-export type SecureSpecifics = { industry: Industry; identity: string }
+export type Mode = "Secure" | "SuperSecure" | "LegacySecure" | "Sso"
+export type SuperSecureOverview = { institution: string; industry: Industry; identity: string; specials: string; seed: number; min: number; max: number; mode: Mode; created: string; recovery: string | null; website: string | null; alias: string[]; bucket: Bucket | null; twofactor: TwoFactor | null }
 export type ListResult = { id: string; account_type: Mode; institution: string; identity: string; bucket: ResultBucket | null; twofactor: ResultTwofactor | null }
+export type LegacyOverview = { institution: string; industry: Industry; mode: Mode; created: string; recovery: string | null; website: string | null; alias: string[]; bucket: Bucket | null; twofactor: TwoFactor | null }
+export type Industry = "Tech" | "Games" | "Social" | "Finance" | "Shopping" | "Science" | "Other"
+export type SecureSpecifics = { industry: Industry; identity: string }
+export type SsoListResult = { id: string; institution: string; bucket: ResultBucket | null }
+export type TwoFactor = { id: string; name: string; device: string }
 export type SecureOverview = { institution: string; industry: Industry; identity: string; mode: Mode; created: string; recovery: string | null; website: string | null; alias: string[]; bucket: Bucket | null; twofactor: TwoFactor | null }
+export type LegacyData = { institution: string; industry: number }
+export type SearchResult = { id: string; account_type: Mode; institution: string; identity: string; bucket: ResultBucket | null }
 export type ResultBucket = { name: string; color: string }
 export type SuperSecureSpecifics = { industry: Industry; identity: string; specials: string; seed: number; min: number; max: number }
+export type LegacySuperData = { institution: string; industry: number; idendity: string; seed: number; min: number; max: number; specials: string }
 export type SsoOverview = { ssoaccount_id: string; ssoaccount_institution: string; institution: string; mode: Mode; created: string; recovery: string | null; website: string | null; alias: string[]; bucket: Bucket | null; twofactor: TwoFactor | null }
+export type Bucket = { id: string; name: string; color: string; n: number }
+export type ResultTwofactor = { name: string; device: string }

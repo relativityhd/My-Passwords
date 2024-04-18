@@ -46,7 +46,7 @@
 
 <div class="header">
 	<div class="text">
-		<h3>Hello Tobias!</h3>
+		<h3>Hello {data.username}!</h3>
 	</div>
 	<div class="logout">
 		<md-outlined-button

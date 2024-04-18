@@ -10,3 +10,5 @@ export async function load({ params }) {
 	console.log(account);
 	return { id: params.id, account, buckets, deletelocked, nosso_accounts };
 }
+
+export const prerender = false;

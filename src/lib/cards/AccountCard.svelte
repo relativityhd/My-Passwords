@@ -28,7 +28,13 @@
 		<div class="card-header">
 			<div class="card-header-text">
 				<h3>{account.institution}</h3>
-				<p>{account.identity}</p>
+				{#if account.account_type === 'Secure' || account.account_type === 'SuperSecure'}
+					<p>{account.identity}</p>
+				{:else if account.account_type === 'Sso'}
+					<p>SSO::{account.identity}</p>
+				{:else}
+					<p>Legacy</p>
+				{/if}
 			</div>
 			<md-icon>{icons[account.account_type]}</md-icon>
 		</div>

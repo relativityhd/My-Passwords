@@ -1,5 +1,5 @@
 import { redirect } from '@sveltejs/kit';
-import { isAuthenticated, hasLc } from '$lib/bindings';
+import { isAuthenticated, hasLc, getUsername } from '$lib/bindings';
 
 /** @type {import('./$types').LayoutLoad} */
 export async function load() {
@@ -7,5 +7,6 @@ export async function load() {
 	if (!(await isAuthenticated())) {
 		throw redirect(307, '/signin');
 	}
-	return { isPinned: hasLc() };
+	const username = await getUsername();
+	return { isPinned: hasLc(), username };
 }
