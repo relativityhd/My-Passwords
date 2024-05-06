@@ -1,9 +1,11 @@
 -- Table SSO Accounts (its a relation)
-DEFINE TABLE use_sso_of SCHEMAFULL
-  PERMISSIONS FOR select, create, update, delete WHERE owner = $auth.id;
+/**
+In: The account (e.g. Figma)
+Out: The sso account (e.g. Google)
+*/
 
-DEFINE FIELD in ON use_sso_of TYPE record<account>; // The account (e.g. Figma)
-DEFINE FIELD out ON use_sso_of TYPE record<account>; // The sso account (e.g. Google)
+DEFINE TABLE use_sso_of SCHEMAFULL TYPE RELATION IN account OUT account
+  PERMISSIONS FOR select, create, update, delete WHERE owner = $auth.id;
 
 DEFINE FIELD owner ON use_sso_of
   TYPE record<user>

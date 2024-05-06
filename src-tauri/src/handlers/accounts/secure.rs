@@ -24,9 +24,10 @@ pub async fn secure_live_input(
     identity: &str,
     industry: Industry,
 ) -> Result<String, AccountError> {
-    let state = lc.lock().await;
-    let local_creds: LocalCreds =
-        <Option<LocalCreds> as Clone>::clone(&state).ok_or(AccountError::PinNotFound)?;
+    //let state = lc.lock()?;
+    //let local_creds: LocalCreds =
+    //<Option<LocalCreds> as Clone>::clone(&state).ok_or(AccountError::PinNotFound)?;
+    let local_creds = extract_lc(&lc).await?;
     let pw = gen_pw(institution, &industry, &local_creds.secret, identity);
     Ok(pw)
 }

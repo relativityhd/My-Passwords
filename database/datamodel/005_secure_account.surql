@@ -12,11 +12,8 @@ DEFINE FIELD owner ON secure_account
   DEFAULT $auth.id;
 
 -- Relations
-DEFINE TABLE is_secure SCHEMAFULL
+DEFINE TABLE is_secure SCHEMAFULL TYPE RELATION IN account OUT secure_account
   PERMISSIONS FOR select, create, update, delete WHERE owner = $auth.id;
-
-DEFINE FIELD in ON is_secure TYPE record<account>;
-DEFINE FIELD out ON is_secure TYPE record<secure_account>;
 
 DEFINE FIELD owner ON is_secure
   TYPE record<user>

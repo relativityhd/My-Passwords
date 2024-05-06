@@ -48,7 +48,7 @@ pub async fn signout(
     }
     db.invalidate().await?;
 
-    let mut state = lc.lock().await;
+    let mut state = lc.lock()?;
     *state = None;
     println!("User signed out");
     Ok(())
@@ -149,14 +149,13 @@ pub async fn has_lc(
     db: DB<'_>,
     lc: LC<'_>,
 ) -> Result<bool, AuthError> {
-    let auth = get_user(db.clone()).await?;
-
-    let state = lc.lock().await;
-    if state.is_some() {
+    // Check if lc is already in memory
+    if lc.lock()?.is_some() {
         return Ok(true);
     }
-    drop(state); // Free the lock
 
+    // Check if lc is stored in cache
+    let auth = get_user(db.clone()).await?;
     let fname = format!("{}.cache", auth.id);
     let fpath = app_handle
         .path_resolver()
@@ -187,7 +186,7 @@ pub async fn has_lc(
     // Deserialize lc
     let newlc: LocalCreds = serde_json::from_slice(&serialized_lc)?;
 
-    let mut state = lc.lock().await;
+    let mut state = lc.lock()?;
     *state = Some(newlc);
     Ok(true)
 }
@@ -230,7 +229,7 @@ pub async fn store_lc(
     // Convert lc to bytes
     file.write_all(&encrypted_lc).await?;
 
-    let mut state = lc.lock().await;
+    let mut state = lc.lock()?;
     *state = Some(newlc);
     Ok(())
 }

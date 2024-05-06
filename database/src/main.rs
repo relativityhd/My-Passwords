@@ -4,20 +4,48 @@ use std::io::{self, Write};
 use std::path::Path;
 use std::process::Command;
 
-use serde::{Deserialize, Serialize};
-use serde_json;
-use std::fs::File;
-use std::io::BufReader;
+use serde::Serialize;
 
+use clap::Parser;
 use surrealdb::engine::remote::ws::Ws;
-use surrealdb::opt::auth::Scope;
+use surrealdb::opt::auth::{Root, Scope};
 use surrealdb::Surreal;
 
-const HOST: &str = "http://localhost:8000";
-const USER: &str = "root";
-const PASSWORD: &str = "root";
-const NAMESPACE: &str = "accounts";
-const DATABASE: &str = "dev";
+struct SurrealAuth {
+    host: String,
+    wshost: String,
+    user: String,
+    password: String,
+    namespace: String,
+    database: String,
+}
+
+#[derive(Parser)]
+enum SubCommand {
+    Setup,
+    Migrate,
+    SetupTestData,
+}
+
+// My-Accounts database setup and migration tool
+#[derive(Parser)]
+#[command(version, about, long_about = None)]
+struct Cli {
+    #[clap(subcommand)]
+    subcmd: SubCommand,
+    #[clap(short, long, default_value = "http://localhost:8000")]
+    host: String,
+    #[clap(short, long, default_value = "127.0.0.1:8000")]
+    wshost: String,
+    #[clap(short, long, default_value = "root")]
+    user: String,
+    #[clap(short, long, default_value = "root")]
+    password: String,
+    #[clap(short, long, default_value = "accounts")]
+    namespace: String,
+    #[clap(short, long, default_value = "dev")]
+    database: String,
+}
 
 #[derive(Serialize)]
 struct Credentials<'a> {
@@ -26,22 +54,69 @@ struct Credentials<'a> {
     password: &'a str,
 }
 
-fn import_surreal_file(file: &str) {
+async fn set_version(auth: &SurrealAuth) {
+    println!("Setting version");
+    let version = env!("CARGO_PKG_VERSION");
+
+    let db = Surreal::new::<Ws>(&auth.wshost)
+        .await
+        .expect("Failed to connect to database");
+    db.use_ns(&auth.namespace)
+        .use_db(&auth.database)
+        .await
+        .expect("Failed to use namespace");
+
+    db.signin(Root {
+        username: &auth.user,
+        password: &auth.password,
+    })
+    .await
+    .expect("Failed to sign in");
+
+    let sql = format!("DEFINE PARAM $version VALUE '{}'", version);
+    db.query(sql).await.expect("Failed to set version");
+}
+
+fn import_surreal_file(file: &str, auth: &SurrealAuth) {
     println!("Importing file: {}", file);
 
     let output = if cfg!(target_os = "windows") {
         Command::new("cmd")
             .args([
-                "/C", "surreal", "import", "-e", HOST, "-u", USER, "-p", PASSWORD, "--ns",
-                NAMESPACE, "--db", DATABASE, file,
+                "/C",
+                "surreal",
+                "import",
+                "-e",
+                &auth.host,
+                "-u",
+                &auth.user,
+                "-p",
+                &auth.password,
+                "--ns",
+                &auth.namespace,
+                "--db",
+                &auth.database,
+                file,
             ])
             .output()
             .expect("failed to execute process")
     } else {
         Command::new("sh")
             .args([
-                "-c", "surreal", "import", "-e", HOST, "-u", USER, "-p", PASSWORD, "--ns",
-                NAMESPACE, "--db", DATABASE, file,
+                "-c",
+                "surreal",
+                "import",
+                "-e",
+                &auth.host,
+                "-u",
+                &auth.user,
+                "-p",
+                &auth.password,
+                "--ns",
+                &auth.namespace,
+                "--db",
+                &auth.database,
+                file,
             ])
             .output()
             .expect("failed to execute process")
@@ -51,13 +126,13 @@ fn import_surreal_file(file: &str) {
     io::stderr().write_all(&output.stderr).unwrap();
 }
 
-fn setup_db() {
+async fn setup_db(auth: &SurrealAuth) {
     println!(
         "Setting up database with user: {}, password: {}, namespace: {}, database: {}",
-        USER, PASSWORD, NAMESPACE, DATABASE
+        &auth.user, &auth.password, &auth.namespace, &auth.database
     );
     let p = Path::new("datamodel/000_namespace.surql");
-    import_surreal_file(p.as_os_str().to_str().unwrap());
+    import_surreal_file(p.as_os_str().to_str().unwrap(), &auth);
 
     let p = Path::new("datamodel").read_dir().unwrap();
     for entry in p {
@@ -65,27 +140,41 @@ fn setup_db() {
         if file.file_stem().unwrap() == "000_namespace" {
             continue;
         }
-        import_surreal_file(file.as_os_str().to_str().unwrap());
+        import_surreal_file(file.as_os_str().to_str().unwrap(), auth);
     }
 
     let p = Path::new("logic").read_dir().unwrap();
     for entry in p {
         let file = entry.unwrap().path();
-        if file.file_stem().unwrap() == "000_roadmap" {
-            continue;
-        }
-        import_surreal_file(file.as_os_str().to_str().unwrap());
+        import_surreal_file(file.as_os_str().to_str().unwrap(), auth);
+    }
+    set_version(&auth).await;
+}
+
+async fn migrate_db(auth: &SurrealAuth) {
+    let version = env!("CARGO_PKG_VERSION");
+    println!(
+        "Migrating database with user: {}, password: {}, namespace: {}, database: {} to version {}",
+        &auth.user, &auth.password, &auth.namespace, &auth.database, version
+    );
+
+    let p = Path::new("migrate").join(format!("{}.surql", version));
+    if p.exists() {
+        import_surreal_file(p.as_os_str().to_str().unwrap(), auth);
+        set_version(&auth).await;
+    } else {
+        println!("No migration file found for version {}", version);
     }
 }
 
-async fn setup_test_user() {
+async fn setup_test_user(auth: &SurrealAuth) {
     println!("Setting up test-user");
 
-    let db = Surreal::new::<Ws>("127.0.0.1:8000")
+    let db = Surreal::new::<Ws>(&auth.wshost)
         .await
         .expect("Failed to connect to database");
-    db.use_ns(NAMESPACE)
-        .use_db(DATABASE)
+    db.use_ns(&auth.namespace)
+        .use_db(&auth.database)
         .await
         .expect("Failed to use namespace");
 
@@ -111,14 +200,14 @@ async fn setup_test_user() {
     db.authenticate(token.clone()).await.unwrap();
 }
 
-async fn setup_test_data() {
+async fn setup_test_data(auth: &SurrealAuth) {
     println!("Setting up data");
 
-    let db = Surreal::new::<Ws>("127.0.0.1:8000")
+    let db = Surreal::new::<Ws>(&auth.wshost)
         .await
         .expect("Failed to connect to database");
-    db.use_ns(NAMESPACE)
-        .use_db(DATABASE)
+    db.use_ns(&auth.namespace)
+        .use_db(&auth.database)
         .await
         .expect("Failed to use namespace");
 
@@ -160,14 +249,14 @@ async fn setup_test_data() {
     db.query(sql).await.unwrap();
 }
 
-async fn wipe_db() {
+async fn wipe_db(auth: &SurrealAuth) {
     println!("Wiping database");
 
-    let db = Surreal::new::<Ws>("127.0.0.1:8000")
+    let db = Surreal::new::<Ws>(&auth.wshost)
         .await
         .expect("Failed to connect to database");
-    db.use_ns(NAMESPACE)
-        .use_db(DATABASE)
+    db.use_ns(&auth.namespace)
+        .use_db(&auth.database)
         .await
         .expect("Failed to use namespace");
 
@@ -210,8 +299,23 @@ async fn wipe_db() {
 
 #[tokio::main]
 async fn main() {
-    setup_db();
-    setup_test_user().await;
-    wipe_db().await;
-    setup_test_data().await;
+    let args = Cli::parse();
+    let auth = SurrealAuth {
+        host: args.host,
+        wshost: args.wshost,
+        user: args.user,
+        password: args.password,
+        namespace: args.namespace,
+        database: args.database,
+    };
+    match args.subcmd {
+        SubCommand::Setup => setup_db(&auth).await,
+        SubCommand::Migrate => migrate_db(&auth).await,
+        SubCommand::SetupTestData => {
+            setup_db(&auth).await;
+            setup_test_user(&auth).await;
+            wipe_db(&auth).await;
+            setup_test_data(&auth).await;
+        }
+    }
 }

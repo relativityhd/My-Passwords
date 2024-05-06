@@ -146,7 +146,7 @@ export function loadFromJson(data: LegacyData[], superdata: LegacySuperData[]) {
     return invoke()<null>("load_from_json", { data,superdata })
 }
 
-export type LocalCreds = { pin: number; secret: string }
+export type LocalCreds<> = null
 export type PopularResult = { id: string; account_type: Mode; institution: string; identity: string; bucket: ResultBucket | null; calls: number }
 export type AccountMetadata = { institution: string; recovery: string | null; website: string | null; alias: string[] }
 export type Mode = "Secure" | "SuperSecure" | "LegacySecure" | "Sso"

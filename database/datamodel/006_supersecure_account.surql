@@ -20,11 +20,8 @@ DEFINE FIELD owner ON supersecure_account
   DEFAULT $auth.id;
 
 -- Relations
-DEFINE TABLE is_supersecure SCHEMALESS
+DEFINE TABLE is_supersecure SCHEMALESS TYPE RELATION IN account OUT supersecure_account
   PERMISSIONS FOR select, create, update, delete WHERE owner = $auth.id;
-
-DEFINE FIELD in ON is_supersecure TYPE record<account>;
-DEFINE FIELD out ON is_supersecure TYPE record<supersecure_account>;
 
 DEFINE FIELD owner ON is_supersecure
   TYPE record<user>

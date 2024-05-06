@@ -6,9 +6,9 @@ pub mod mode;
 use crate::errors::AccountError;
 use serde::Serialize;
 use std::sync::Arc;
+use std::sync::Mutex;
 use surrealdb::engine::remote::ws::Client;
 use surrealdb::Surreal;
-use tokio::sync::Mutex;
 
 pub mod handlers;
 pub use industry::Industry;
@@ -21,14 +21,16 @@ pub struct Record {
 
 #[derive(Serialize, Deserialize, Clone, Type)]
 pub(crate) struct LocalCreds {
+    #[serde(skip_serializing)]
     pub pin: u32,
+    #[serde(skip_serializing)]
     pub secret: String,
 }
 
 pub type DB<'a> = tauri::State<'a, Surreal<Client>>;
-pub type LC<'a> = tauri::State<'a, Arc<Mutex<Option<LocalCreds>>>>;
+pub type LC<'a> = tauri::State<'a, Mutex<Option<LocalCreds>>>;
 
 pub async fn extract_lc(lc: &LC<'_>) -> Result<LocalCreds, AccountError> {
-    let state = lc.lock().await;
+    let state = lc.lock()?;
     state.clone().ok_or(AccountError::PinNotFound)
 }

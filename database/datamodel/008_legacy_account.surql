@@ -10,11 +10,8 @@ DEFINE FIELD owner ON legacy_account
   DEFAULT $auth.id;
 
 -- Relations
-DEFINE TABLE is_legacy SCHEMAFULL
+DEFINE TABLE is_legacy SCHEMAFULL TYPE RELATION IN account OUT legacy_account
   PERMISSIONS FOR select, create, update, delete WHERE owner = $auth.id;
-
-DEFINE FIELD in ON is_legacy TYPE record<account>;
-DEFINE FIELD out ON is_legacy TYPE record<legacy_account>;
 
 DEFINE FIELD owner ON is_legacy
   TYPE record<user>
