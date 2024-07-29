@@ -1,8 +1,8 @@
 use crate::algorithm::gen_pw;
+use crate::common::extract_lc;
 use crate::errors::AccountError;
 use crate::handlers::accounts::add_call;
 use crate::types::{
-    extract_lc,
     handlers::{AccountMetadata, SecureOverview, SecureSpecifics},
     Industry, LocalCreds, DB, LC,
 };

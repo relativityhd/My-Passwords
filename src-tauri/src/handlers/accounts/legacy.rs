@@ -1,8 +1,8 @@
 use crate::algorithm::gen_legacy_pw;
+use crate::common::extract_lc;
 use crate::errors::AccountError;
 use crate::handlers::accounts::add_call;
 use crate::types::{
-    extract_lc,
     handlers::{AccountMetadata, LegacyOverview},
     Industry, LocalCreds, DB, LC,
 };

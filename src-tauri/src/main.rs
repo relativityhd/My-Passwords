@@ -9,9 +9,10 @@ mod handlers;
 mod types;
 
 use handlers::*;
+use once_cell::sync::Lazy;
 use specta::collect_types;
 use std::sync::Arc;
-use surrealdb::engine::remote::ws::Ws;
+use surrealdb::engine::remote::ws::{Client, Ws};
 use surrealdb::Surreal;
 use tauri::Manager;
 use tauri_specta::ts;
@@ -22,6 +23,9 @@ use types::LocalCreds;
 async fn main() {
     ts::export(
         collect_types![
+            database::load_db,
+            database::check_connection,
+            database::connect,
             auth::signin,
             auth::signup,
             auth::signout,
@@ -61,7 +65,7 @@ async fn main() {
     )
     .expect("Type export to just work...");
 
-    let db_url = if cfg!(dev_mode) {
+    /* let db_url = if cfg!(dev_mode) {
         println!("Running in dev mode");
         "127.0.0.1:8000"
     } else {
@@ -74,7 +78,9 @@ async fn main() {
     db.use_ns("accounts")
         .use_db("dev")
         .await
-        .expect("Failed to use namespace");
+        .expect("Failed to use namespace"); */
+
+    let db: Lazy<Surreal<Client>> = Lazy::new(Surreal::init);
 
     let pin = Arc::new(Mutex::new(None::<LocalCreds>));
 
@@ -82,6 +88,9 @@ async fn main() {
         .manage(db)
         .manage(pin)
         .invoke_handler(tauri::generate_handler![
+            database::load_db,
+            database::check_connection,
+            database::connect,
             auth::signin,
             auth::signup,
             auth::signout,

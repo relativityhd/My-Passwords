@@ -10,6 +10,18 @@ declare global {
 // Function avoids 'window not defined' in SSR
 const invoke = () => window.__TAURI_INVOKE__;
 
+export function loadDb() {
+    return invoke()<boolean>("load_db")
+}
+
+export function checkConnection(url: string) {
+    return invoke()<null>("check_connection", { url })
+}
+
+export function connect(url: string) {
+    return invoke()<null>("connect", { url })
+}
+
 export function signin(identity: string, password: string, remember: boolean) {
     return invoke()<null>("signin", { identity,password,remember })
 }
@@ -146,7 +158,6 @@ export function loadFromJson(data: LegacyData[], superdata: LegacySuperData[]) {
     return invoke()<null>("load_from_json", { data,superdata })
 }
 
-export type LocalCreds<> = null
 export type PopularResult = { id: string; account_type: Mode; institution: string; identity: string; bucket: ResultBucket | null; calls: number }
 export type AccountMetadata = { institution: string; recovery: string | null; website: string | null; alias: string[] }
 export type Mode = "Secure" | "SuperSecure" | "LegacySecure" | "Sso"
@@ -162,6 +173,7 @@ export type LegacyData = { institution: string; industry: number }
 export type SearchResult = { id: string; account_type: Mode; institution: string; identity: string; bucket: ResultBucket | null }
 export type ResultBucket = { name: string; color: string }
 export type SuperSecureSpecifics = { industry: Industry; identity: string; specials: string; seed: number; min: number; max: number }
+export type LocalCreds<> = null
 export type LegacySuperData = { institution: string; industry: number; idendity: string; seed: number; min: number; max: number; specials: string }
 export type SsoOverview = { ssoaccount_id: string; ssoaccount_institution: string; institution: string; mode: Mode; created: string; recovery: string | null; website: string | null; alias: string[]; bucket: Bucket | null; twofactor: TwoFactor | null }
 export type Bucket = { id: string; name: string; color: string; n: number }

@@ -127,3 +127,28 @@ pub enum GenerationError {
     #[error("Unable to generate password.")]
     UnableToGenerate,
 }
+
+#[derive(Debug, Error)]
+pub enum DatabaseError {
+    #[error("Database error: {0:?}")]
+    Db(#[from] surrealdb::Error),
+    #[error("IO error: {0:?}")]
+    Io(#[from] std::io::Error),
+    #[error("No version found in database")]
+    NoVersion,
+    #[error("Invalid UTF-8 in db url file: {0:?}")]
+    InvalidUtf8(#[from] std::string::FromUtf8Error),
+    #[error("App data directory not found")]
+    AppDataNotFound,
+    #[error("Version mismatch. Expected: {expected:?}, found: {found:?}")]
+    VersionMismatch { expected: String, found: String },
+}
+
+impl Serialize for DatabaseError {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(self.to_string().as_ref())
+    }
+}

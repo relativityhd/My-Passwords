@@ -1,3 +1,4 @@
+use once_cell::sync::Lazy;
 use serde::Deserialize;
 use specta::Type;
 use surrealdb::sql::Thing;
@@ -21,16 +22,9 @@ pub struct Record {
 
 #[derive(Serialize, Deserialize, Clone, Type)]
 pub(crate) struct LocalCreds {
-    #[serde(skip_serializing)]
     pub pin: u32,
-    #[serde(skip_serializing)]
     pub secret: String,
 }
 
-pub type DB<'a> = tauri::State<'a, Surreal<Client>>;
+pub type DB<'a> = tauri::State<'a, Lazy<Surreal<Client>>>;
 pub type LC<'a> = tauri::State<'a, Mutex<Option<LocalCreds>>>;
-
-pub async fn extract_lc(lc: &LC<'_>) -> Result<LocalCreds, AccountError> {
-    let state = lc.lock()?;
-    state.clone().ok_or(AccountError::PinNotFound)
-}
