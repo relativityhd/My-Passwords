@@ -59,6 +59,27 @@ $ sudo systemctl start surrealdb
 surreal start --strict --auth --user [ROOT_USER_NAME] --pass [ROOT_USER_PASSWORD] 
 ```
 
+## Workflow
+
+```mermaid
+---
+title: Database Selection
+---
+flowchart LR
+    LoadDB[Load Database]
+    CheckDB[Check Database]
+    ConnectDB[Connect to Database]
+    Auth[Authenticate]
+    DBPage[Show Database Page]
+
+    LoadDB --yes--> Auth
+    LoadDB --no--> DBPage
+    DBPage --> CheckDB
+    CheckDB --yes--> ConnectDB
+    CheckDB --no--> DBPage
+    ConnectDB --> Auth
+```
+
 ## Roadmap
 
 - [x] Create Secure
@@ -82,12 +103,15 @@ surreal start --strict --auth --user [ROOT_USER_NAME] --pass [ROOT_USER_PASSWORD
 - [x] Import Script for Legacy
 - [x] Dynamic Username Top left corner
 - [x] Wallpaper Credits auf Logic Page und in pot. Footer
+- [ ] Change version numbers & author information in all config files (Cargo.toml, package.json, etc.)
 - [ ] Run Clippy and remove all println / dbg / console.log and all other warnings
 - [ ] GitHub Action aufsetzen
-- [ ] SurrealDB aufsetzen (Mit HTTPS und systemd) https://surrealdb.com/docs/surrealdb/cli/start
+- [ ] SurrealDB aufsetzen (Mit HTTPS und systemd) <https://surrealdb.com/docs/surrealdb/cli/start>
 - [ ] Version 2
   - [ ] Improve Error Handling -> Propably propergate the errors from DB and enrich with more information
   - [ ] Input Sanitation or general better security
+  - [ ] Improve DB Connection Page
+  - [ ] Offline Mode
   - [ ] Make own Delete-Bucket dialog
   - [ ] Manage Buckets
   - [ ] Create 2FA

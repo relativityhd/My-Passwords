@@ -12,85 +12,73 @@ use handlers::*;
 use once_cell::sync::Lazy;
 use specta::collect_types;
 use std::sync::Arc;
-use surrealdb::engine::remote::ws::{Client, Ws};
+use std::sync::Mutex;
+use surrealdb::engine::remote::ws::Client;
 use surrealdb::Surreal;
 use tauri::Manager;
 use tauri_specta::ts;
-use tokio::sync::Mutex;
 use types::LocalCreds;
 
 #[tokio::main]
 async fn main() {
-    ts::export(
-        collect_types![
-            database::load_db,
-            database::check_connection,
-            database::connect,
-            auth::signin,
-            auth::signup,
-            auth::signout,
-            auth::is_authenticated,
-            auth::has_lc,
-            auth::store_lc,
-            auth::get_username,
-            buckets::create_bucket,
-            buckets::get_buckets,
-            buckets::delete_bucket,
-            search::search,
-            search::search_bucket,
-            accounts::get_mode,
-            accounts::in_sso_use,
-            accounts::delete_account,
-            accounts::get_all_accounts,
-            accounts::get_popular,
-            accounts::secure::secure_live_input,
-            accounts::secure::get_secure_password,
-            accounts::secure::get_secure_overview,
-            accounts::secure::create_secure,
-            accounts::secure::edit_secure,
-            accounts::supersecure::supersecure_live_input,
-            accounts::supersecure::get_supersecure_password,
-            accounts::supersecure::get_supersecure_overview,
-            accounts::supersecure::create_supersecure,
-            accounts::supersecure::edit_supersecure,
-            accounts::sso::get_sso_overview,
-            accounts::sso::create_sso,
-            accounts::sso::edit_sso,
-            accounts::sso::list_nosso_accounts,
-            accounts::legacy::get_legacy_password,
-            accounts::legacy::get_legacy_overview,
-            accounts::legacy::load_from_json
-        ],
-        "../src/lib/bindings.ts",
-    )
-    .expect("Type export to just work...");
-
-    /* let db_url = if cfg!(dev_mode) {
+    if cfg!(debug_assertions) {
         println!("Running in dev mode");
-        "127.0.0.1:8000"
-    } else {
-        "tobiashoelzer.de:8000"
-    };
-
-    let db = Surreal::new::<Ws>(db_url)
-        .await
-        .expect("Failed to connect to database");
-    db.use_ns("accounts")
-        .use_db("dev")
-        .await
-        .expect("Failed to use namespace"); */
+        ts::export(
+            collect_types![
+                database::check_connection,
+                database::connect,
+                database::is_connected,
+                auth::signin,
+                auth::signup,
+                auth::signout,
+                auth::is_authenticated,
+                auth::has_lc,
+                auth::store_lc,
+                auth::get_username,
+                buckets::create_bucket,
+                buckets::get_buckets,
+                buckets::delete_bucket,
+                search::search,
+                search::search_bucket,
+                accounts::get_mode,
+                accounts::in_sso_use,
+                accounts::delete_account,
+                accounts::get_all_accounts,
+                accounts::get_popular,
+                accounts::secure::secure_live_input,
+                accounts::secure::get_secure_password,
+                accounts::secure::get_secure_overview,
+                accounts::secure::create_secure,
+                accounts::secure::edit_secure,
+                accounts::supersecure::supersecure_live_input,
+                accounts::supersecure::get_supersecure_password,
+                accounts::supersecure::get_supersecure_overview,
+                accounts::supersecure::create_supersecure,
+                accounts::supersecure::edit_supersecure,
+                accounts::sso::get_sso_overview,
+                accounts::sso::create_sso,
+                accounts::sso::edit_sso,
+                accounts::sso::list_nosso_accounts,
+                accounts::legacy::get_legacy_password,
+                accounts::legacy::get_legacy_overview,
+                accounts::legacy::load_from_json
+            ],
+            "../src/lib/bindings.ts",
+        )
+        .expect("Type export to just work...");
+    }
 
     let db: Lazy<Surreal<Client>> = Lazy::new(Surreal::init);
 
-    let pin = Arc::new(Mutex::new(None::<LocalCreds>));
+    let pin = Mutex::new(None::<LocalCreds>);
 
     tauri::Builder::default()
         .manage(db)
         .manage(pin)
         .invoke_handler(tauri::generate_handler![
-            database::load_db,
             database::check_connection,
             database::connect,
+            database::is_connected,
             auth::signin,
             auth::signup,
             auth::signout,

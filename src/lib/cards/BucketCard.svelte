@@ -29,7 +29,7 @@
 	export let name: string;
 	export let n: number;
 	export let color: string;
-	export let id: string;
+	export const id: string = '';
 </script>
 
 <div

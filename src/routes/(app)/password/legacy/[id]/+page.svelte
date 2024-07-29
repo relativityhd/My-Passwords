@@ -226,11 +226,6 @@
 		margin: 0;
 	}
 
-	.institution p {
-		margin: 0;
-		opacity: 0.8;
-	}
-
 	.bucket {
 		grid-area: bucket;
 		flex-flow: row wrap;

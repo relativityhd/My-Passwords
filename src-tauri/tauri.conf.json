@@ -27,7 +27,7 @@
         "all": true,
         "request": true,
         "scope": [
-          "https://*.tobiashoelzer.com/*"
+          "https://*.tobiashoelzer.de/*"
         ]
       }
     },

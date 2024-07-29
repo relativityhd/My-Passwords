@@ -10,16 +10,16 @@ declare global {
 // Function avoids 'window not defined' in SSR
 const invoke = () => window.__TAURI_INVOKE__;
 
-export function loadDb() {
-    return invoke()<boolean>("load_db")
-}
-
 export function checkConnection(url: string) {
     return invoke()<null>("check_connection", { url })
 }
 
 export function connect(url: string) {
     return invoke()<null>("connect", { url })
+}
+
+export function isConnected() {
+    return invoke()<boolean>("is_connected")
 }
 
 export function signin(identity: string, password: string, remember: boolean) {
@@ -173,7 +173,7 @@ export type LegacyData = { institution: string; industry: number }
 export type SearchResult = { id: string; account_type: Mode; institution: string; identity: string; bucket: ResultBucket | null }
 export type ResultBucket = { name: string; color: string }
 export type SuperSecureSpecifics = { industry: Industry; identity: string; specials: string; seed: number; min: number; max: number }
-export type LocalCreds<> = null
+export type LocalCreds = { pin: number; secret: string }
 export type LegacySuperData = { institution: string; industry: number; idendity: string; seed: number; min: number; max: number; specials: string }
 export type SsoOverview = { ssoaccount_id: string; ssoaccount_institution: string; institution: string; mode: Mode; created: string; recovery: string | null; website: string | null; alias: string[]; bucket: Bucket | null; twofactor: TwoFactor | null }
 export type Bucket = { id: string; name: string; color: string; n: number }

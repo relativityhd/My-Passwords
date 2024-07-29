@@ -142,6 +142,8 @@ pub enum DatabaseError {
     AppDataNotFound,
     #[error("Version mismatch. Expected: {expected:?}, found: {found:?}")]
     VersionMismatch { expected: String, found: String },
+    #[error("Invalid URL")]
+    InvalidUrl,
 }
 
 impl Serialize for DatabaseError {

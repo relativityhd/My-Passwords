@@ -7,7 +7,7 @@ use std::process::Command;
 use serde::Serialize;
 
 use clap::Parser;
-use surrealdb::engine::remote::ws::Ws;
+use surrealdb::engine::remote::ws::{Ws, Wss};
 use surrealdb::opt::auth::{Root, Scope};
 use surrealdb::Surreal;
 
@@ -18,6 +18,7 @@ struct SurrealAuth {
     password: String,
     namespace: String,
     database: String,
+    secure: bool,
 }
 
 #[derive(Parser)]
@@ -33,17 +34,17 @@ enum SubCommand {
 struct Cli {
     #[clap(subcommand)]
     subcmd: SubCommand,
-    #[clap(short, long, default_value = "http://localhost:8000")]
+    #[clap(long, default_value = "http://localhost:8000")]
     host: String,
-    #[clap(short, long, default_value = "127.0.0.1:8000")]
+    #[clap(long, default_value = "127.0.0.1:8000")]
     wshost: String,
-    #[clap(short, long, default_value = "root")]
+    #[clap(long, default_value = "root")]
     user: String,
-    #[clap(short, long, default_value = "root")]
+    #[clap(long, default_value = "root")]
     password: String,
-    #[clap(short, long, default_value = "accounts")]
+    #[clap(long, default_value = "accounts")]
     namespace: String,
-    #[clap(short, long, default_value = "dev")]
+    #[clap(long, default_value = "dev")]
     database: String,
 }
 
@@ -57,10 +58,17 @@ struct Credentials<'a> {
 async fn set_version(auth: &SurrealAuth) {
     println!("Setting version");
     let version = env!("CARGO_PKG_VERSION");
+    println!("Version: {}", version);
 
-    let db = Surreal::new::<Ws>(&auth.wshost)
-        .await
-        .expect("Failed to connect to database");
+    let db = if auth.secure {
+        Surreal::new::<Wss>(&auth.wshost)
+            .await
+            .expect("Failed to connect to database")
+    } else {
+        Surreal::new::<Ws>(&auth.wshost)
+            .await
+            .expect("Failed to connect to database")
+    };
     db.use_ns(&auth.namespace)
         .use_db(&auth.database)
         .await
@@ -74,7 +82,21 @@ async fn set_version(auth: &SurrealAuth) {
     .expect("Failed to sign in");
 
     let sql = format!("DEFINE PARAM $version VALUE '{}'", version);
-    db.query(sql).await.expect("Failed to set version");
+    let res = db.query(sql).await.expect("Failed to set version");
+    dbg!(&res);
+
+    let sql = "$version";
+    let found = db
+        .query(sql)
+        .await
+        .expect("Failed to get version")
+        .take::<Option<String>>(0)
+        .expect("Failed to get version");
+    dbg!(&found);
+    let found = found.unwrap();
+    if version != found {
+        panic!("Version mismatch. Expected: {}, found: {}", version, found);
+    }
 }
 
 fn import_surreal_file(file: &str, auth: &SurrealAuth) {
@@ -131,8 +153,40 @@ async fn setup_db(auth: &SurrealAuth) {
         "Setting up database with user: {}, password: {}, namespace: {}, database: {}",
         &auth.user, &auth.password, &auth.namespace, &auth.database
     );
-    let p = Path::new("datamodel/000_namespace.surql");
-    import_surreal_file(p.as_os_str().to_str().unwrap(), &auth);
+    // Create namespace and database if not exists
+    let db = if auth.secure {
+        Surreal::new::<Wss>(&auth.wshost)
+            .await
+            .expect("Failed to connect to database")
+    } else {
+        Surreal::new::<Ws>(&auth.wshost)
+            .await
+            .expect("Failed to connect to database")
+    };
+
+    db.signin(Root {
+        username: &auth.user,
+        password: &auth.password,
+    })
+    .await
+    .expect("Failed to sign in");
+
+    let sql = format!(
+        "DEFINE NAMESPACE {};
+                      USE NAMESPACE {};
+                      DEFINE DATABASE {};
+                      USE DB {};
+                      ",
+        &auth.namespace, &auth.namespace, &auth.database, &auth.database,
+    );
+    let res = db
+        .query(sql)
+        .await
+        .expect("Failed to create namespace and database");
+    dbg!(&res);
+
+    // let p = Path::new("datamodel/000_namespace.surql");
+    // import_surreal_file(p.as_os_str().to_str().unwrap(), &auth);
 
     let p = Path::new("datamodel").read_dir().unwrap();
     for entry in p {
@@ -170,9 +224,15 @@ async fn migrate_db(auth: &SurrealAuth) {
 async fn setup_test_user(auth: &SurrealAuth) {
     println!("Setting up test-user");
 
-    let db = Surreal::new::<Ws>(&auth.wshost)
-        .await
-        .expect("Failed to connect to database");
+    let db = if auth.secure {
+        Surreal::new::<Wss>(&auth.wshost)
+            .await
+            .expect("Failed to connect to database")
+    } else {
+        Surreal::new::<Ws>(&auth.wshost)
+            .await
+            .expect("Failed to connect to database")
+    };
     db.use_ns(&auth.namespace)
         .use_db(&auth.database)
         .await
@@ -203,9 +263,15 @@ async fn setup_test_user(auth: &SurrealAuth) {
 async fn setup_test_data(auth: &SurrealAuth) {
     println!("Setting up data");
 
-    let db = Surreal::new::<Ws>(&auth.wshost)
-        .await
-        .expect("Failed to connect to database");
+    let db = if auth.secure {
+        Surreal::new::<Wss>(&auth.wshost)
+            .await
+            .expect("Failed to connect to database")
+    } else {
+        Surreal::new::<Ws>(&auth.wshost)
+            .await
+            .expect("Failed to connect to database")
+    };
     db.use_ns(&auth.namespace)
         .use_db(&auth.database)
         .await
@@ -252,9 +318,15 @@ async fn setup_test_data(auth: &SurrealAuth) {
 async fn wipe_db(auth: &SurrealAuth) {
     println!("Wiping database");
 
-    let db = Surreal::new::<Ws>(&auth.wshost)
-        .await
-        .expect("Failed to connect to database");
+    let db = if auth.secure {
+        Surreal::new::<Wss>(&auth.wshost)
+            .await
+            .expect("Failed to connect to database")
+    } else {
+        Surreal::new::<Ws>(&auth.wshost)
+            .await
+            .expect("Failed to connect to database")
+    };
     db.use_ns(&auth.namespace)
         .use_db(&auth.database)
         .await
@@ -301,12 +373,13 @@ async fn wipe_db(auth: &SurrealAuth) {
 async fn main() {
     let args = Cli::parse();
     let auth = SurrealAuth {
-        host: args.host,
+        host: args.host.clone(),
         wshost: args.wshost,
         user: args.user,
         password: args.password,
         namespace: args.namespace,
         database: args.database,
+        secure: args.host.starts_with("https"),
     };
     match args.subcmd {
         SubCommand::Setup => setup_db(&auth).await,
