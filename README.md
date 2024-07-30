@@ -2,13 +2,6 @@
 
 A hand-made easy-to-remember password generator and manager. Made with Tauri, Svelte and ♥.
 
-## Roadmap
-
-- SuperSecure Mode: Monatsabhänig machen für z.B. IBM wo alle 3 Monate geupdatet werden muss
-- Passwort mit freier Eingabe
-- Sanity Checks: Überprüfen, ob Acc / Bucket / Institution zum Benutzer gehört
-- Add indicies to DB
-
 ## Database Stuff
 
 Start DB in memory
@@ -121,3 +114,4 @@ flowchart LR
   - [ ] Automaticly search for institution website and write it to acc-page
   - [ ] Add search-aliases for institutions
   - [ ] Add a password history to the password page (link disabled accounts)
+  - [ ] SuperSecure Mode: Make it time-dependend, e.g. IBM requests password change every 3 months
