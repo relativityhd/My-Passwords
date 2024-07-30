@@ -7,7 +7,7 @@
     "distDir": "../build"
   },
   "package": {
-    "productName": "my-passwords",
+    "productName": "My-Passwords",
     "version": "0.1.0"
   },
   "tauri": {
@@ -46,7 +46,7 @@
         "exceptionDomain": "tobiashoelzer.de"
       },
       "resources": [],
-      "shortDescription": "A hand-made easy-to-remember password generator and manager",
+      "shortDescription": "A hand-made easy-to-remember password generator and manager.",
       "targets": "all"
     },
     "security": {
@@ -60,7 +60,7 @@
         "fullscreen": false,
         "height": 800,
         "resizable": true,
-        "title": "My Passwords",
+        "title": "My-Passwords",
         "width": 1200,
         "decorations": true,
         "center": true,

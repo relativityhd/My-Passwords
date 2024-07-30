@@ -1,13 +1,14 @@
 [package]
-name = "app"
+name = "my-passwords"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+description = "A hand-made easy-to-remember password generator and manager."
+authors = ["Tobias Hölzer<tobiashoelzer@hotmail.com>"]
 license = ""
-repository = ""
-default-run = "app"
+repository = "https://github.com/relativityhd/My-Passwords-New"
+default-run = "my-passwords"
 edition = "2021"
 rust-version = "1.60"
+publish = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [build-dependencies]

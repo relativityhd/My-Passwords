@@ -114,27 +114,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3b13c32d80ecc7ab747b80c3784bce54ee8a7a0cc4fbda9bf4cda2cf6fe90854"
 
 [[package]]
-name = "app"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "itertools 0.12.1",
- "once_cell",
- "orion",
- "regex",
- "serde",
- "serde_json",
- "serde_repr",
- "specta",
- "surrealdb",
- "tauri",
- "tauri-build",
- "tauri-specta",
- "thiserror",
- "tokio",
-]
-
-[[package]]
 name = "approx"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2494,6 +2473,27 @@ dependencies = [
  "libc",
  "wasi 0.11.0+wasi-snapshot-preview1",
  "windows-sys 0.52.0",
+]
+
+[[package]]
+name = "my-passwords"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "itertools 0.12.1",
+ "once_cell",
+ "orion",
+ "regex",
+ "serde",
+ "serde_json",
+ "serde_repr",
+ "specta",
+ "surrealdb",
+ "tauri",
+ "tauri-build",
+ "tauri-specta",
+ "thiserror",
+ "tokio",
 ]
 
 [[package]]

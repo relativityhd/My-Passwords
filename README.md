@@ -1,17 +1,9 @@
 # My-Passwords
 
-Roadmap:
+A hand-made easy-to-remember password generator and manager. Made with Tauri, Svelte and ♥.
 
-- Offline Mode
-- Fix Accessibility
-- Fetching personal secret from file
-- Buckets: e.g. Personal, IBM, DHBW, FU etc... + Ability to Move Acc between Buckets
-- Automaticly search for institution website and write it to acc-page
-- SSO: Show which SSO Acc was used, if none show password. Option to let account be registred as an SSO -> Own Settings Page where User can select Acc to Link to SSO
-- Note of Authenticator Usage
-- Fields for Recovery Codes, Security Word etc.
-- Aliases for search. E.g. if a company is mostly known for product A (where you login) but the company itself is actually called B
-- Change database either to surrealdb for the flex or make a git-backed file-system password store for [password history](https://www.youtube.com/watch?v=FhwsfH2TpFA)
+## Roadmap
+
 - SuperSecure Mode: Monatsabhänig machen für z.B. IBM wo alle 3 Monate geupdatet werden muss
 - Passwort mit freier Eingabe
 - Sanity Checks: Überprüfen, ob Acc / Bucket / Institution zum Benutzer gehört
@@ -82,32 +74,34 @@ flowchart LR
 
 ## Roadmap
 
-- [x] Create Secure
-- [x] Secure Password Site
-- [x] Edit Secure
-- [x] Delete Secure
-- [x] Store PIN and SECRET on local
-- [x] Store Special-Chars in DB
-- [x] For Super-Secure-Case: Replace "year" with "seed" -> must be equal to seed = year%3 so that seed%3
-- [x] Super Secure Algo
-- [x] Create Super Secure
-- [x] Super Secure Password Site
-- [x] Create SSO
-- [x] SSO Password Site
-- [x] Legacy Password Site
-- [x] List of all Passwords
-- [x] Store Recent Searched / Popular Searches
-- [x] Create Buckets
-- [x] Delete Buckets
-- [x] Reorga main page -> Create Bucket must be possible from there
-- [x] Import Script for Legacy
-- [x] Dynamic Username Top left corner
-- [x] Wallpaper Credits auf Logic Page und in pot. Footer
-- [ ] Change version numbers & author information in all config files (Cargo.toml, package.json, etc.)
-- [ ] Run Clippy and remove all println / dbg / console.log and all other warnings
-- [ ] GitHub Action aufsetzen
-- [ ] SurrealDB aufsetzen (Mit HTTPS und systemd) <https://surrealdb.com/docs/surrealdb/cli/start>
-- [ ] Version 2
+- [ ] Beta v0.1
+  - [x] Create Secure
+  - [x] Secure Password Site
+  - [x] Edit Secure
+  - [x] Delete Secure
+  - [x] Store PIN and SECRET on local
+  - [x] Store Special-Chars in DB
+  - [x] For Super-Secure-Case: Replace "year" with "seed" -> must be equal to seed = year%3 so that seed%3
+  - [x] Super Secure Algo
+  - [x] Create Super Secure
+  - [x] Super Secure Password Site
+  - [x] Create SSO
+  - [x] SSO Password Site
+  - [x] Legacy Password Site
+  - [x] List of all Passwords
+  - [x] Store Recent Searched / Popular Searches
+  - [x] Create Buckets
+  - [x] Delete Buckets
+  - [x] Reorga main page -> Create Bucket must be possible from there
+  - [x] Import Script for Legacy
+  - [x] Dynamic Username Top left corner
+  - [x] Wallpaper Credits auf Logic Page und in pot. Footer
+  - [x] Change version numbers & author information in all config files (Cargo.toml, package.json, etc.)
+  - [ ] GitHub Action aufsetzen
+  - [x] SurrealDB aufsetzen (Mit HTTPS und systemd) <https://surrealdb.com/docs/surrealdb/cli/start>
+- [ ] Version Backlog
+  - [ ] Run Clippy and remove all println / dbg / console.log and all other warnings
+  - [ ] Enable and redo "Load Lagacy JSON"
   - [ ] Improve Error Handling -> Propably propergate the errors from DB and enrich with more information
   - [ ] Input Sanitation or general better security
   - [ ] Improve DB Connection Page
@@ -122,4 +116,8 @@ flowchart LR
   - [ ] Random Bucket Wallpaper as theme
   - [ ] Custom Theme builder einbauen & themes local speichern
   - [ ] Options Page
-  - [ ] Drag n Drop resorting of accounts into Buckets on the List Page
+  - [ ] Drag n Drop resorting of accounts into Buckets on the List Page ([Example](https://svelte.dev/repl/b225504c9fea44b189ed5bfb566df6e6?version=4.2.18))
+  - [ ] Accessibility
+  - [ ] Automaticly search for institution website and write it to acc-page
+  - [ ] Add search-aliases for institutions
+  - [ ] Add a password history to the password page (link disabled accounts)
