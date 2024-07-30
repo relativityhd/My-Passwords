@@ -18,6 +18,8 @@
 	console.log({ systemDark });
 	// Apply the theme to the body by updating custom properties for material tokens
 	applyTheme(theme, { target: document.body, dark: systemDark });
+
+	export let data;
 </script>
 
 <svelte:head>
@@ -29,6 +31,7 @@
 </svelte:head>
 
 <slot />
+<p class="version-info">{data.version_info}</p>
 
 <img src="/noise.svg" alt="Noise overlay" class="overlay" />
 
@@ -52,5 +55,14 @@
 		z-index: 9999;
 		object-fit: cover;
 		pointer-events: none;
+	}
+
+	.version-info {
+		position: fixed;
+		bottom: 0;
+		right: 0;
+		padding: 0.5em;
+		font-size: 0.8em;
+		color: var(--md-sys-color-on-surface);
 	}
 </style>

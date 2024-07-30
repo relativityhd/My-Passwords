@@ -10,6 +10,12 @@ use tauri::http::status;
 use tokio::fs::File;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
+#[cfg(debug_assertions)]
+const DBNAME: &str = "dev";
+
+#[cfg(not(debug_assertions))]
+const DBNAME: &str = "prod";
+
 async fn store_db_url(app_data_dir: Option<PathBuf>, url: &str) -> Result<(), DatabaseError> {
     print!("Storing db url: {}", url);
     let dir = app_data_dir.ok_or(DatabaseError::AppDataNotFound)?;
@@ -49,11 +55,7 @@ async fn validate_url(url: &str) -> Result<(), DatabaseError> {
         Scheme::Ws => Surreal::new::<Ws>(host).await?,
         Scheme::Wss => Surreal::new::<Wss>(host).await?,
     };
-    let dbname = match cfg!(debug_assertions) {
-        true => "dev",
-        false => "prod",
-    };
-    db.use_ns("accounts").use_db(dbname).await?;
+    db.use_ns("accounts").use_db(DBNAME).await?;
 
     dbg!("Checking db health");
     db.health().await?;
@@ -99,11 +101,7 @@ pub async fn connect(
     };
     dbg!(&db);
 
-    let dbname = match cfg!(debug_assertions) {
-        true => "dev",
-        false => "prod",
-    };
-    db.use_ns("accounts").use_db(dbname).await?;
+    db.use_ns("accounts").use_db(DBNAME).await?;
     Ok(())
 }
 
@@ -139,11 +137,14 @@ pub async fn is_connected(app_handle: tauri::AppHandle, db: DB<'_>) -> Result<bo
         Scheme::Ws => db.connect::<Ws>(host).await?,
         Scheme::Wss => db.connect::<Wss>(host).await?,
     };
-    let dbname = match cfg!(debug_assertions) {
-        true => "dev",
-        false => "prod",
-    };
-    db.use_ns("accounts").use_db(dbname).await?;
+    db.use_ns("accounts").use_db(DBNAME).await?;
     dbg!("Db is connected");
     Ok(!db.health().await.is_err())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn version_info() -> Result<String, ()> {
+    let version = env!("CARGO_PKG_VERSION");
+    Ok(format!("v{version}-{DBNAME}"))
 }
