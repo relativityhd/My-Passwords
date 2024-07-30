@@ -1,11 +1,10 @@
-use entities::sea_orm_active_enums::Industry as IndustryEnum;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use std::convert::Infallible;
 use std::fmt::Display;
 pub use std::str::FromStr;
 
-#[derive(Serialize, Deserialize, Debug, Type)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Type)]
 pub enum Industry {
     Tech,     // -> @
     Games,    // -> !
@@ -28,34 +27,6 @@ impl FromStr for Industry {
             "shopping" => Ok(Industry::Shopping),
             "science" => Ok(Industry::Science),
             _ => Ok(Industry::Other),
-        }
-    }
-}
-
-impl Into<IndustryEnum> for Industry {
-    fn into(self) -> IndustryEnum {
-        match self {
-            Industry::Tech => IndustryEnum::Tech,
-            Industry::Games => IndustryEnum::Games,
-            Industry::Social => IndustryEnum::Social,
-            Industry::Finance => IndustryEnum::Finance,
-            Industry::Shopping => IndustryEnum::Shopping,
-            Industry::Science => IndustryEnum::Science,
-            Industry::Other => IndustryEnum::Other,
-        }
-    }
-}
-
-impl From<IndustryEnum> for Industry {
-    fn from(value: IndustryEnum) -> Self {
-        match value {
-            IndustryEnum::Tech => Industry::Tech,
-            IndustryEnum::Games => Industry::Games,
-            IndustryEnum::Social => Industry::Social,
-            IndustryEnum::Finance => Industry::Finance,
-            IndustryEnum::Shopping => Industry::Shopping,
-            IndustryEnum::Science => Industry::Science,
-            IndustryEnum::Other => Industry::Other,
         }
     }
 }

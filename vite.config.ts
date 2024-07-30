@@ -13,16 +13,11 @@ export default defineConfig(async () => {
 		test: {
 			include: ['src/**/*.{test,spec}.{js,ts}']
 		},
+		clearScreen: false,
 		server: {
-			host: '0.0.0.0', // listen on all addresses
-			port: 5173,
-			strictPort: true,
-			hmr: {
-				protocol: 'ws',
-				host, // listen on all addresses (was host from internalIpV4() above, but that didn't work for me in WSL2)
-				port: 5173
-			}
-		}
+			strictPort: true
+		},
+		envPrefix: ['VITE_', 'TAURI_']
 	};
 
 	return config;

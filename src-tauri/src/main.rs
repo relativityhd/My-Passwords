@@ -3,98 +3,118 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod algorithm;
-mod database;
+mod common;
+mod errors;
 mod handlers;
 mod types;
 
-use entities::{prelude::*, *};
 use handlers::*;
-use sea_orm::*;
+use once_cell::sync::Lazy;
 use specta::collect_types;
+use std::sync::Arc;
 use std::sync::Mutex;
+use surrealdb::engine::remote::ws::Client;
+use surrealdb::Surreal;
+use tauri::Manager;
 use tauri_specta::ts;
+use types::LocalCreds;
 
 #[tokio::main]
 async fn main() {
-    ts::export(
-        collect_types![
-            add_secure_account,
-            retrieve_secure_account,
-            search_user_accounts,
-            list_user_accounts,
-            create_bucket,
-            recolor_bucket,
-            rename_bucket,
-            delete_bucket,
-            get_user_buckets,
-        ],
-        "../src/lib/bindings.ts",
-    )
-    .expect("Type export to just work...");
-
-    let db = database::establish_connection()
-        .await
-        .expect("a reachable database");
-
-    let userid = 1;
-
-    let user_res = User::insert(user::ActiveModel {
-        id: ActiveValue::Set(userid),
-        username: Set("dev".to_owned()),
-        pass: Set("dev".to_owned()),
-        ..Default::default()
-    })
-    .exec(&db)
-    .await;
-    match user_res {
-        Ok(_) => println!("User inserted"),
-        Err(e) => match e.sql_err() {
-            Some(SqlErr::UniqueConstraintViolation(_)) => {
-                println!("User already exists, won't insert again")
-            }
-            _ => println!("Error inserting user: {:?}", e),
-        },
+    if cfg!(debug_assertions) {
+        println!("Running in dev mode");
+        ts::export(
+            collect_types![
+                database::check_connection,
+                database::connect,
+                database::is_connected,
+                database::version_info,
+                auth::signin,
+                auth::signup,
+                auth::signout,
+                auth::is_authenticated,
+                auth::has_lc,
+                auth::store_lc,
+                auth::get_username,
+                buckets::create_bucket,
+                buckets::get_buckets,
+                buckets::delete_bucket,
+                search::search,
+                search::search_bucket,
+                accounts::get_mode,
+                accounts::in_sso_use,
+                accounts::delete_account,
+                accounts::get_all_accounts,
+                accounts::get_popular,
+                accounts::secure::secure_live_input,
+                accounts::secure::get_secure_password,
+                accounts::secure::get_secure_overview,
+                accounts::secure::create_secure,
+                accounts::secure::edit_secure,
+                accounts::supersecure::supersecure_live_input,
+                accounts::supersecure::get_supersecure_password,
+                accounts::supersecure::get_supersecure_overview,
+                accounts::supersecure::create_supersecure,
+                accounts::supersecure::edit_supersecure,
+                accounts::sso::get_sso_overview,
+                accounts::sso::create_sso,
+                accounts::sso::edit_sso,
+                accounts::sso::list_nosso_accounts,
+                accounts::legacy::get_legacy_password,
+                accounts::legacy::get_legacy_overview,
+                accounts::legacy::load_from_json
+            ],
+            "../src/lib/bindings.ts",
+        )
+        .expect("Type export to just work...");
     }
 
-    // Double check if inserted correctly
-    let main_user = User::find_by_id(userid)
-        .one(&db)
-        .await
-        .expect("Failed to find user")
-        .unwrap();
+    let db: Lazy<Surreal<Client>> = Lazy::new(Surreal::init);
 
-    let bucket_res = Bucket::insert(bucket::ActiveModel {
-        id: Set(1),
-        name: Set("Main".to_owned()),
-        color: Set("#000000".to_owned()),
-        user_id: Set(main_user.id),
-        ..Default::default()
-    })
-    .exec(&db)
-    .await;
-    match bucket_res {
-        Ok(_) => println!("Bucket inserted"),
-        Err(e) => match e.sql_err() {
-            Some(SqlErr::UniqueConstraintViolation(_)) => {
-                println!("Bucket already exists, won't insert again")
-            }
-            _ => println!("Error inserting bucket: {:?}", e),
-        },
-    }
+    let pin = Mutex::new(None::<LocalCreds>);
 
     tauri::Builder::default()
         .manage(db)
-        .manage(Mutex::new(main_user))
+        .manage(pin)
         .invoke_handler(tauri::generate_handler![
-            add_secure_account,
-            retrieve_secure_account,
-            search_user_accounts,
-            list_user_accounts,
-            create_bucket,
-            recolor_bucket,
-            rename_bucket,
-            delete_bucket,
-            get_user_buckets,
+            database::check_connection,
+            database::connect,
+            database::is_connected,
+            database::version_info,
+            auth::signin,
+            auth::signup,
+            auth::signout,
+            auth::is_authenticated,
+            auth::has_lc,
+            auth::store_lc,
+            auth::get_username,
+            buckets::create_bucket,
+            buckets::get_buckets,
+            buckets::delete_bucket,
+            search::search,
+            search::search_bucket,
+            accounts::get_mode,
+            accounts::in_sso_use,
+            accounts::delete_account,
+            accounts::get_all_accounts,
+            accounts::get_popular,
+            accounts::secure::secure_live_input,
+            accounts::secure::get_secure_password,
+            accounts::secure::get_secure_overview,
+            accounts::secure::create_secure,
+            accounts::secure::edit_secure,
+            accounts::supersecure::supersecure_live_input,
+            accounts::supersecure::get_supersecure_password,
+            accounts::supersecure::get_supersecure_overview,
+            accounts::supersecure::create_supersecure,
+            accounts::supersecure::edit_supersecure,
+            accounts::sso::get_sso_overview,
+            accounts::sso::create_sso,
+            accounts::sso::edit_sso,
+            accounts::sso::list_nosso_accounts,
+            accounts::legacy::get_legacy_password,
+            accounts::legacy::get_legacy_overview,
+            accounts::legacy::load_from_json
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -10,43 +10,175 @@ declare global {
 // Function avoids 'window not defined' in SSR
 const invoke = () => window.__TAURI_INVOKE__;
 
-export function addSecureAccount(institutionName: string, accountName: string, industry: Industry, bucketId: number | null) {
-    return invoke()<number>("add_secure_account", { institutionName,accountName,industry,bucketId })
+export function checkConnection(url: string) {
+    return invoke()<null>("check_connection", { url })
 }
 
-export function retrieveSecureAccount(accountId: number) {
-    return invoke()<UnlockedSecretAccount>("retrieve_secure_account", { accountId })
+export function connect(url: string) {
+    return invoke()<null>("connect", { url })
 }
 
-export function searchUserAccounts() {
-    return invoke()<null>("search_user_accounts")
+export function isConnected() {
+    return invoke()<boolean>("is_connected")
 }
 
-export function listUserAccounts() {
-    return invoke()<Account[]>("list_user_accounts")
+export function versionInfo() {
+    return invoke()<string>("version_info")
+}
+
+export function signin(identity: string, password: string, remember: boolean) {
+    return invoke()<null>("signin", { identity,password,remember })
+}
+
+export function signup(email: string, username: string, password: string, remember: boolean) {
+    return invoke()<null>("signup", { email,username,password,remember })
+}
+
+export function signout() {
+    return invoke()<null>("signout")
+}
+
+export function isAuthenticated() {
+    return invoke()<boolean>("is_authenticated")
+}
+
+export function hasLc() {
+    return invoke()<boolean>("has_lc")
+}
+
+export function storeLc(newlc: LocalCreds) {
+    return invoke()<null>("store_lc", { newlc })
+}
+
+export function getUsername() {
+    return invoke()<string>("get_username")
 }
 
 export function createBucket(bucketName: string, bucketColor: string) {
-    return invoke()<number>("create_bucket", { bucketName,bucketColor })
+    return invoke()<string>("create_bucket", { bucketName,bucketColor })
 }
 
-export function recolorBucket(bucketId: number, bucketColor: string) {
-    return invoke()<number>("recolor_bucket", { bucketId,bucketColor })
+export function getBuckets() {
+    return invoke()<Bucket[]>("get_buckets")
 }
 
-export function renameBucket(bucketId: number, bucketName: string) {
-    return invoke()<number>("rename_bucket", { bucketId,bucketName })
+export function deleteBucket(bucketId: string) {
+    return invoke()<null>("delete_bucket", { bucketId })
 }
 
-export function deleteBucket(bucketId: number) {
-    return invoke()<number>("delete_bucket", { bucketId })
+export function search(searchTerm: string) {
+    return invoke()<SearchResult[]>("search", { searchTerm })
 }
 
-export function getUserBuckets() {
-    return invoke()<RetrievedBucket[]>("get_user_buckets")
+export function searchBucket(searchTerm: string, bucketId: string) {
+    return invoke()<SearchResult[]>("search_bucket", { searchTerm,bucketId })
 }
 
-export type RetrievedBucket = { id: number; name: string; color: string }
-export type UnlockedSecretAccount = { id: number; created_at: string; account_name: string; industry: Industry; two_factor_auth: boolean; recovery: string | null; bucket_name: string; bucket_color: string; institution_name: string; password: string }
+export function getMode(id: string) {
+    return invoke()<Mode>("get_mode", { id })
+}
+
+export function inSsoUse(id: string) {
+    return invoke()<boolean>("in_sso_use", { id })
+}
+
+export function deleteAccount(id: string) {
+    return invoke()<null>("delete_account", { id })
+}
+
+export function getAllAccounts() {
+    return invoke()<ListResult[]>("get_all_accounts")
+}
+
+export function getPopular() {
+    return invoke()<PopularResult[]>("get_popular")
+}
+
+export function secureLiveInput(institution: string, identity: string, industry: Industry) {
+    return invoke()<string>("secure_live_input", { institution,identity,industry })
+}
+
+export function getSecurePassword(id: string) {
+    return invoke()<string>("get_secure_password", { id })
+}
+
+export function getSecureOverview(id: string) {
+    return invoke()<[SecureOverview, string]>("get_secure_overview", { id })
+}
+
+export function createSecure(metadata: AccountMetadata, specifics: SecureSpecifics, bucketid: string | null, twofactorid: string | null) {
+    return invoke()<string>("create_secure", { metadata,specifics,bucketid,twofactorid })
+}
+
+export function editSecure(id: string, metadata: AccountMetadata, specifics: SecureSpecifics, bucketid: string | null, twofactorid: string | null) {
+    return invoke()<string>("edit_secure", { id,metadata,specifics,bucketid,twofactorid })
+}
+
+export function supersecureLiveInput(institution: string, identity: string, industry: Industry, specials: string, seed: number, min: number, max: number) {
+    return invoke()<string>("supersecure_live_input", { institution,identity,industry,specials,seed,min,max })
+}
+
+export function getSupersecurePassword(id: string) {
+    return invoke()<string>("get_supersecure_password", { id })
+}
+
+export function getSupersecureOverview(id: string) {
+    return invoke()<[SuperSecureOverview, string]>("get_supersecure_overview", { id })
+}
+
+export function createSupersecure(metadata: AccountMetadata, specifics: SuperSecureSpecifics, bucketid: string | null, twofactorid: string | null) {
+    return invoke()<string>("create_supersecure", { metadata,specifics,bucketid,twofactorid })
+}
+
+export function editSupersecure(id: string, metadata: AccountMetadata, specifics: SuperSecureSpecifics, bucketid: string | null, twofactorid: string | null) {
+    return invoke()<string>("edit_supersecure", { id,metadata,specifics,bucketid,twofactorid })
+}
+
+export function getSsoOverview(id: string) {
+    return invoke()<SsoOverview>("get_sso_overview", { id })
+}
+
+export function createSso(ssoaccountId: string, metadata: AccountMetadata, bucketid: string | null, twofactorid: string | null) {
+    return invoke()<string>("create_sso", { ssoaccountId,metadata,bucketid,twofactorid })
+}
+
+export function editSso(id: string, ssoaccountId: string, metadata: AccountMetadata, bucketid: string | null, twofactorid: string | null) {
+    return invoke()<string>("edit_sso", { id,ssoaccountId,metadata,bucketid,twofactorid })
+}
+
+export function listNossoAccounts() {
+    return invoke()<SsoListResult[]>("list_nosso_accounts")
+}
+
+export function getLegacyPassword(id: string) {
+    return invoke()<string>("get_legacy_password", { id })
+}
+
+export function getLegacyOverview(id: string) {
+    return invoke()<[LegacyOverview, string]>("get_legacy_overview", { id })
+}
+
+export function loadFromJson(data: LegacyData[], superdata: LegacySuperData[]) {
+    return invoke()<null>("load_from_json", { data,superdata })
+}
+
+export type AccountMetadata = { institution: string; recovery: string | null; website: string | null; alias: string[] }
+export type ResultTwofactor = { name: string; device: string }
+export type LegacyData = { institution: string; industry: number }
+export type SsoListResult = { id: string; institution: string; bucket: ResultBucket | null }
+export type SsoOverview = { ssoaccount_id: string; ssoaccount_institution: string; institution: string; mode: Mode; created: string; recovery: string | null; website: string | null; alias: string[]; bucket: Bucket | null; twofactor: TwoFactor | null }
+export type SecureOverview = { institution: string; industry: Industry; identity: string; mode: Mode; created: string; recovery: string | null; website: string | null; alias: string[]; bucket: Bucket | null; twofactor: TwoFactor | null }
+export type TwoFactor = { id: string; name: string; device: string }
+export type SearchResult = { id: string; account_type: Mode; institution: string; identity: string; bucket: ResultBucket | null }
+export type Bucket = { id: string; name: string; color: string; n: number }
+export type ListResult = { id: string; account_type: Mode; institution: string; identity: string; bucket: ResultBucket | null; twofactor: ResultTwofactor | null }
+export type Mode = "Secure" | "SuperSecure" | "LegacySecure" | "Sso"
+export type LocalCreds = { pin: number; secret: string }
+export type LegacyOverview = { institution: string; industry: Industry; mode: Mode; created: string; recovery: string | null; website: string | null; alias: string[]; bucket: Bucket | null; twofactor: TwoFactor | null }
+export type ResultBucket = { name: string; color: string }
+export type LegacySuperData = { institution: string; industry: number; idendity: string; seed: number; min: number; max: number; specials: string }
+export type SecureSpecifics = { industry: Industry; identity: string }
+export type SuperSecureOverview = { institution: string; industry: Industry; identity: string; specials: string; seed: number; min: number; max: number; mode: Mode; created: string; recovery: string | null; website: string | null; alias: string[]; bucket: Bucket | null; twofactor: TwoFactor | null }
+export type SuperSecureSpecifics = { industry: Industry; identity: string; specials: string; seed: number; min: number; max: number }
+export type PopularResult = { id: string; account_type: Mode; institution: string; identity: string; bucket: ResultBucket | null; calls: number }
 export type Industry = "Tech" | "Games" | "Social" | "Finance" | "Shopping" | "Science" | "Other"
-export type Account = { id: number; created_at: string; account_name: string; bucket_name: string; bucket_color: string; institution_name: string }

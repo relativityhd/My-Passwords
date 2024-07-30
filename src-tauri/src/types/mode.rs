@@ -15,7 +15,7 @@ pub enum Mode {
     Secure,
     SuperSecure,
     LegacySecure,
-    SSO,
+    Sso,
 }
 
 impl FromStr for Mode {
@@ -23,10 +23,10 @@ impl FromStr for Mode {
 
     fn from_str(s: &str) -> Result<Self, InvalidModeError> {
         match s {
-            "secure" => Ok(Mode::Secure),
-            "super_secure" => Ok(Mode::SuperSecure),
-            "legacy_secure" => Ok(Mode::LegacySecure),
-            "sso" => Ok(Mode::SSO),
+            "Secure" => Ok(Mode::Secure),
+            "SuperSecure" => Ok(Mode::SuperSecure),
+            "LegacySecure" => Ok(Mode::LegacySecure),
+            "Sso" => Ok(Mode::Sso),
             _ => Err(InvalidModeError::InvalidMode(s.to_string())),
         }
     }
@@ -35,10 +35,10 @@ impl FromStr for Mode {
 impl Display for Mode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = match self {
-            Mode::Secure => "secure",
-            Mode::SuperSecure => "super_secure",
-            Mode::LegacySecure => "legacy_secure",
-            Mode::SSO => "sso",
+            Mode::Secure => "Secure",
+            Mode::SuperSecure => "SuperSecure",
+            Mode::LegacySecure => "LegacySecure",
+            Mode::Sso => "Sso",
         };
         write!(f, "{}", s)
     }

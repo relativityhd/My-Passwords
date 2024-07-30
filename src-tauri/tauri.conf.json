@@ -7,21 +7,33 @@
     "distDir": "../build"
   },
   "package": {
-    "productName": "my-passwords",
-    "version": "0.1.0"
+    "productName": "My-Passwords",
+    "version": "../package.json"
   },
   "tauri": {
     "allowlist": {
-      "all": false
+      "all": false,
+      "fs": {
+        "readFile": true
+      },
+      "clipboard": {
+        "all": true
+      },
+      "dialog": {
+        "ask": true,
+        "open": true
+      },
+      "http": {
+        "all": true,
+        "request": true,
+        "scope": [
+          "https://*.tobiashoelzer.de/*"
+        ]
+      }
     },
     "bundle": {
       "active": true,
-      "category": "DeveloperTool",
-      "copyright": "",
-      "deb": {
-        "depends": []
-      },
-      "externalBin": [],
+      "category": "Utility",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
@@ -30,22 +42,12 @@
         "icons/icon.ico"
       ],
       "identifier": "de.tobiashoelzer.passwords",
-      "longDescription": "",
       "macOS": {
-        "entitlements": null,
-        "exceptionDomain": "",
-        "frameworks": [],
-        "providerShortName": null,
-        "signingIdentity": null
+        "exceptionDomain": "tobiashoelzer.de"
       },
       "resources": [],
-      "shortDescription": "",
-      "targets": "all",
-      "windows": {
-        "certificateThumbprint": null,
-        "digestAlgorithm": "sha256",
-        "timestampUrl": ""
-      }
+      "shortDescription": "A hand-made easy-to-remember password generator and manager.",
+      "targets": "all"
     },
     "security": {
       "csp": null
@@ -56,10 +58,13 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 600,
+        "height": 800,
         "resizable": true,
-        "title": "My Passwords",
-        "width": 800
+        "title": "My-Passwords",
+        "width": 1200,
+        "decorations": true,
+        "center": true,
+        "titleBarStyle": "Overlay"
       }
     ]
   }

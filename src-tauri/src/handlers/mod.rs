@@ -1,5 +1,5 @@
 pub mod accounts;
+pub mod auth;
 pub mod buckets;
-
-pub use accounts::*;
-pub use buckets::*;
+pub mod database;
+pub mod search;

@@ -1,167 +1,187 @@
-use super::types::AccountError;
 use crate::algorithm::gen_pw;
-use crate::types::Industry;
-use chrono::Utc;
-use entities;
-use entities::sea_orm_active_enums::Industry as IndustryEnum;
-use entities::{prelude::*, *};
-use sea_orm::*;
-use serde::Serialize;
-use specta::Type;
-use std::sync::Mutex;
+use crate::common::extract_lc;
+use crate::errors::AccountError;
+use crate::handlers::accounts::add_call;
+use crate::types::{
+    handlers::{AccountMetadata, SecureOverview, SecureSpecifics},
+    Industry, LocalCreds, DB, LC,
+};
+use serde::{Deserialize, Serialize};
+use surrealdb::sql::Thing;
 
-//type DB = tauri::State<Mutex<DatabaseConnection>>;
-//type User = tauri::State<Mutex<user::Model>>;
-
-#[derive(FromQueryResult)]
-struct DbEnrichedSecretAccount {
-    id: i32,
-    user_id: i32,
-    created_at: String,
-    account_name: String,
-    industry: IndustryEnum,
-    two_factor_auth: bool,
-    recovery: Option<String>,
-    bucket_name: String,
-    bucket_color: String,
-    institution_name: String,
-}
-
-#[derive(Serialize, Debug, Type)]
-pub struct UnlockedSecretAccount {
-    pub id: i32,
-    pub created_at: String,
-    pub account_name: String,
-    pub industry: Industry,
-    pub two_factor_auth: bool,
-    pub recovery: Option<String>,
-    pub bucket_name: String,
-    pub bucket_color: String,
-    pub institution_name: String,
-    pub password: String,
-}
-
-impl UnlockedSecretAccount {
-    fn from_account_data(account_data: DbEnrichedSecretAccount, secret: &str) -> Self {
-        let industry = account_data.industry.into();
-        let password = gen_pw(
-            &account_data.institution_name,
-            &industry,
-            secret,
-            &account_data.account_name,
-        );
-        Self {
-            id: account_data.id,
-            created_at: account_data.created_at,
-            account_name: account_data.account_name,
-            industry: industry,
-            two_factor_auth: account_data.two_factor_auth,
-            recovery: account_data.recovery,
-            bucket_name: account_data.bucket_name,
-            bucket_color: account_data.bucket_color,
-            institution_name: account_data.institution_name,
-            password,
-        }
-    }
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn retrieve_secure_account(
-    db: tauri::State<'_, DatabaseConnection>,
-    user: tauri::State<'_, Mutex<user::Model>>,
-    account_id: i32,
-) -> Result<UnlockedSecretAccount, AccountError> {
-    let user_id = user.lock().unwrap().id;
-    drop(user);
-
-    let account_data = Account::find_by_id(account_id)
-        .column_as(account::Column::Id, "id")
-        .column_as(account::Column::UserId, "user_id")
-        .column_as(account::Column::CreatedAt, "created_at")
-        .column_as(account::Column::AccountName, "account_name")
-        .column_as(secure_account::Column::Industry, "industry")
-        .column_as(account::Column::Recovery, "recovery")
-        .column_as(account::Column::TwoFactorAuth, "two_factor_auth")
-        .column_as(bucket::Column::Name, "bucket_name")
-        .column_as(bucket::Column::Color, "bucket_color")
-        .column_as(institution::Column::Name, "institution_name")
-        .join(JoinType::LeftJoin, account::Relation::Bucket.def())
-        .join(JoinType::LeftJoin, account::Relation::Institution.def())
-        .join(JoinType::RightJoin, account::Relation::SecureAccount.def())
-        .into_model::<DbEnrichedSecretAccount>()
-        .one(db.inner())
-        .await?
-        .ok_or(AccountError::NotFound(account_id))?;
-
-    // Check if user is authorized to access this account
-    if account_data.user_id != user_id {
-        return Err(AccountError::NotAuthorized);
-    }
-    let secret = "secret_val"; // TODO: get secret from user and limit it to max 10 chars
-    let unlocked_account = UnlockedSecretAccount::from_account_data(account_data, secret);
-    Ok(unlocked_account)
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn add_secure_account(
-    db: tauri::State<'_, DatabaseConnection>,
-    user: tauri::State<'_, Mutex<user::Model>>,
-    institution_name: &str,
-    account_name: &str,
+#[derive(Deserialize, Serialize)]
+struct SecurePasswordData {
+    institution: String,
     industry: Industry,
-    bucket_id: Option<i32>,
-) -> Result<i32, AccountError> {
-    let created = Utc::now().naive_utc();
-    let user_id = user.lock().unwrap().id;
-    drop(user);
-
-    let mut institution = Institution::find()
-        .filter(institution::Column::Name.eq(institution_name))
-        .one(db.inner())
-        .await?;
-
-    // Check if institution exists
-    if institution.is_none() {
-        let new_institution = institution::ActiveModel {
-            name: Set(institution_name.to_owned()),
-            user_id: Set(user_id),
-            ..Default::default()
-        };
-        institution = Some(new_institution.insert(db.inner()).await?)
-    }
-
-    let new_acc = account::ActiveModel {
-        created_at: Set(created),
-        account_name: Set(account_name.to_owned()),
-        user_id: Set(user_id),
-        bucket_id: Set(bucket_id),
-        institution_id: Set(institution.unwrap().id),
-        ..Default::default()
-    };
-
-    let account = new_acc.insert(db.inner()).await?;
-
-    let new_secure_account = secure_account::ActiveModel {
-        industry: Set(industry.into()),
-        account_id: Set(account.id),
-        ..Default::default()
-    };
-
-    let secure_account = new_secure_account.insert(db.inner()).await?;
-
-    Ok(secure_account.id)
+    identity: String,
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn delete_and_create_new_secure_account() -> Result<(), AccountError> {
-    todo!()
+pub async fn secure_live_input(
+    lc: LC<'_>,
+    institution: &str,
+    identity: &str,
+    industry: Industry,
+) -> Result<String, AccountError> {
+    //let state = lc.lock()?;
+    //let local_creds: LocalCreds =
+    //<Option<LocalCreds> as Clone>::clone(&state).ok_or(AccountError::PinNotFound)?;
+    let local_creds = extract_lc(&lc).await?;
+    let pw = gen_pw(institution, &industry, &local_creds.secret, identity);
+    Ok(pw)
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn delete_secure_account() -> Result<(), AccountError> {
-    todo!()
+pub async fn get_secure_password(db: DB<'_>, lc: LC<'_>, id: &str) -> Result<String, AccountError> {
+    let local_creds = extract_lc(&lc).await?;
+    let secret = local_creds.secret;
+    // Convert id to Record
+    let sql = "SELECT institution,
+        (->is_secure->secure_account.industry)[0] as industry,
+        (->is_secure->secure_account.identity)[0] as identity
+        FROM ONLY type::thing('account', $account);";
+    let id = id.split(':').last().unwrap();
+    let data = db
+        .query(sql)
+        .bind(("account", id))
+        .await?
+        .take::<Option<SecurePasswordData>>(0)?
+        .ok_or(AccountError::AccountNotFound(id.to_string()))?;
+    let pw = gen_pw(
+        &data.institution,
+        &data.industry,
+        &secret.to_string(),
+        &data.identity,
+    );
+    add_call(db, id).await?;
+    Ok(pw)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_secure_overview(
+    db: DB<'_>,
+    lc: LC<'_>,
+    id: &str,
+) -> Result<(SecureOverview, String), AccountError> {
+    let local_creds = extract_lc(&lc).await?;
+    let secret = local_creds.secret;
+
+    let sql = "SELECT
+        institution,
+        recovery,
+        website,
+        alias,
+        account_type as mode,
+        type::string(created) as created,
+        (->is_secure->secure_account.industry)[0] as industry,
+        (->is_secure->secure_account.identity)[0] as identity,
+        (SELECT
+            type::string(id) as id,
+            color,
+            name,
+            array::len(<-is_sorted_in<-account) as n
+            FROM (->is_sorted_in->bucket))[0] as bucket,
+        (SELECT type::string(id) as id, name, device FROM (->is_secured_by->twofactor))[0] as twofactor
+        FROM ONLY type::thing('account', $account);";
+    let id = id.split(':').last().unwrap();
+    let data = db
+        .query(sql)
+        .bind(("account", id))
+        .await?
+        .take::<Option<SecureOverview>>(0)?
+        .ok_or(AccountError::AccountNotFound(id.to_string()))?;
+    let pw = gen_pw(
+        &data.institution,
+        &data.industry,
+        &secret.to_string(),
+        &data.identity,
+    );
+
+    Ok((data, pw))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn create_secure(
+    db: DB<'_>,
+    metadata: AccountMetadata,
+    specifics: SecureSpecifics,
+    bucketid: Option<&str>,
+    twofactorid: Option<&str>,
+) -> Result<String, AccountError> {
+    let bucket = bucketid.map(|b| Thing::from(("bucket", b.split(':').last().unwrap())));
+    let twofactor = twofactorid.map(|t| Thing::from(("twofactor", t.split(':').last().unwrap())));
+    let sql = "
+        fn::create_secure_account(
+            $identity,
+            $industry,
+            $institution,
+            $recovery,
+            $website,
+            $alias,
+            $bucket,
+            $twofactor
+        );
+    ";
+    let record = db
+        .query(sql)
+        .bind(("identity", specifics.identity))
+        .bind(("industry", specifics.industry))
+        .bind(("institution", metadata.institution))
+        .bind(("recovery", metadata.recovery))
+        .bind(("website", metadata.website))
+        .bind(("alias", metadata.alias))
+        .bind(("bucket", bucket))
+        .bind(("twofactor", twofactor))
+        .await?
+        .take::<Option<Thing>>(0)?
+        .ok_or(AccountError::NoID)?;
+    Ok(record.id.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn edit_secure(
+    db: DB<'_>,
+    id: &str,
+    metadata: AccountMetadata,
+    specifics: SecureSpecifics,
+    bucketid: Option<&str>,
+    twofactorid: Option<&str>,
+) -> Result<String, AccountError> {
+    let bucket = bucketid.map(|b| Thing::from(("bucket", b.split(':').last().unwrap())));
+    let twofactor = twofactorid.map(|t| Thing::from(("twofactor", t.split(':').last().unwrap())));
+    dbg!(&bucket, &twofactor);
+    let sql = "
+        fn::edit_secure_account(
+            type::thing('account', $account),
+            $identity,
+            $industry,
+            $institution,
+            $recovery,
+            $website,
+            $alias,
+            $bucket,
+            $twofactor
+        );
+    ";
+    let id = id.split(':').last().unwrap();
+    let record = db
+        .query(sql)
+        .bind(("account", id))
+        .bind(("identity", specifics.identity))
+        .bind(("industry", specifics.industry))
+        .bind(("institution", metadata.institution))
+        .bind(("recovery", metadata.recovery))
+        .bind(("website", metadata.website))
+        .bind(("alias", metadata.alias))
+        .bind(("bucket", bucket))
+        .bind(("twofactor", twofactor))
+        .await?
+        .take::<Option<Thing>>(0)?
+        .ok_or(AccountError::NoID)?;
+    Ok(record.id.to_string())
 }
