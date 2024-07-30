@@ -40,11 +40,6 @@
 		--md-ref-typeface-brand: 'DM Serif Display';
 		--md-ref-typeface-plain: 'DM Serif Display';
 	}
-	body {
-		font-family: var(--md-ref-typeface-brand);
-		background: var(--md-sys-color-surface);
-		color: var(--md-sys-color-on-background);
-	}
 
 	.overlay {
 		position: fixed;
