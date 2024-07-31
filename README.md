@@ -67,7 +67,7 @@ flowchart LR
 
 ## Roadmap
 
-- [ ] Beta v0.1
+- [x] Beta v0.1
   - [x] Create Secure
   - [x] Secure Password Site
   - [x] Edit Secure
@@ -90,28 +90,36 @@ flowchart LR
   - [x] Dynamic Username Top left corner
   - [x] Wallpaper Credits auf Logic Page und in pot. Footer
   - [x] Change version numbers & author information in all config files (Cargo.toml, package.json, etc.)
-  - [ ] GitHub Action aufsetzen
+  - [x] GitHub Action aufsetzen
   - [x] SurrealDB aufsetzen (Mit HTTPS und systemd) <https://surrealdb.com/docs/surrealdb/cli/start>
-- [ ] Version Backlog
-  - [ ] Run Clippy and remove all println / dbg / console.log and all other warnings
-  - [ ] Enable and redo "Load Lagacy JSON"
+- [ ] Beta v0.2 (Increase security)
   - [ ] Improve Error Handling -> Propably propergate the errors from DB and enrich with more information
+  - [ ] SuperSecure Mode: Make it time-dependend, e.g. IBM requests password change every 3 months -> LegacySuperSecure?
+  - [ ] Enable and redo "Load Lagacy JSON"
+  - [ ] Run Clippy and remove all println / dbg / console.log and all other warnings
   - [ ] Input Sanitation or general better security
-  - [ ] Improve DB Connection Page
+  - [ ] Add Password to DB to disable guest mode
+  - [ ] Add possibility for Root to see and delete data from others (?)
+- [ ] Beta v0.3 (DB & Offline)
+  - [ ] Improve DB Connection Page (UX)
   - [ ] Offline Mode
-  - [ ] Make own Delete-Bucket dialog
+- [ ] Beta v0.4 (Add more features and UX)
   - [ ] Manage Buckets
   - [ ] Create 2FA
   - [ ] Manage 2FA
-  - [ ] Archive - Handling
-  - [ ] Dashboard with Statistics
+  - [ ] Archive - Handling password deletions so one can look at them in a history -> link deleted passwords
   - [ ] Create Hand-Written Passwords
+  - [ ] Options Page
+  - [ ] Add search-aliases for institutions
+- [ ] Beta v0.5 (UI & UX)
+  - [ ] Make own Delete-Bucket dialog
   - [ ] Random Bucket Wallpaper as theme
   - [ ] Custom Theme builder einbauen & themes local speichern
-  - [ ] Options Page
   - [ ] Drag n Drop resorting of accounts into Buckets on the List Page ([Example](https://svelte.dev/repl/b225504c9fea44b189ed5bfb566df6e6?version=4.2.18))
-  - [ ] Accessibility
   - [ ] Automaticly search for institution website and write it to acc-page
-  - [ ] Add search-aliases for institutions
-  - [ ] Add a password history to the password page (link disabled accounts)
-  - [ ] SuperSecure Mode: Make it time-dependend, e.g. IBM requests password change every 3 months
+  - [ ] Accessibility
+- [ ] Release
+  - [ ] Windows signing
+  - [ ] MacOD signing
+- [ ] Version Backlog
+  - [ ] Dashboard with Statistics
