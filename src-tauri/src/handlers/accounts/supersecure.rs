@@ -199,7 +199,6 @@ pub async fn edit_supersecure(
 ) -> Result<String, AccountError> {
     let bucket = bucketid.map(|b| Thing::from(("bucket", b.split(':').last().unwrap())));
     let twofactor = twofactorid.map(|t| Thing::from(("twofactor", t.split(':').last().unwrap())));
-    dbg!(&bucket, &twofactor);
     let sql = "
         fn::edit_supersecure_account(
             type::thing('account', $account),

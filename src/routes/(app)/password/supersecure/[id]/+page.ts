@@ -1,13 +1,15 @@
 import { getSupersecureOverview, getBuckets, inSsoUse } from '$lib/bindings';
-import { handleError } from '$lib/errorutils.js';
+import { logLoadError } from '$lib/errorutils.js';
 
 export async function load({ params }) {
 	const [[account, password], buckets, deletelocked] = await Promise.all([
 		getSupersecureOverview(params.id).catch(
-			handleError('app/password/supersecure/+page.ts:getSupersecureOverview')
+			logLoadError('app/password/supersecure/+page.ts:getSupersecureOverview', { id: params.id })
 		),
-		getBuckets().catch(handleError('app/password/supersecure/+page.ts:getBuckets')),
-		inSsoUse(params.id).catch(handleError('app/password/supersecure/+page.ts:inSsoUse'))
+		getBuckets().catch(logLoadError('app/password/supersecure/+page.ts:getBuckets')),
+		inSsoUse(params.id).catch(
+			logLoadError('app/password/supersecure/+page.ts:inSsoUse', { id: params.id })
+		)
 	]);
 
 	return { id: params.id, account, password, buckets, deletelocked };

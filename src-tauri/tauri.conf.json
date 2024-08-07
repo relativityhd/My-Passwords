@@ -14,14 +14,22 @@
     "allowlist": {
       "all": false,
       "fs": {
-        "readFile": true
+        "readFile": true,
+        "writeFile": true,
+        "scope": [
+          "$APPLOG/log.txt"
+        ]
       },
       "clipboard": {
         "all": true
       },
+      "path": {
+        "all": true
+      },
       "dialog": {
         "ask": true,
-        "open": true
+        "open": true,
+        "message": true
       },
       "http": {
         "all": true,

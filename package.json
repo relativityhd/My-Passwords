@@ -43,6 +43,7 @@
 		"@material/material-color-utilities": "^0.2.7",
 		"@material/web": "^1.4.0",
 		"@tauri-apps/api": "^1.5.0",
-		"luxon": "^3.3.0"
+		"luxon": "^3.3.0",
+		"tauri-plugin-log-api": "github:tauri-apps/tauri-plugin-log#v1"
 	}
 }

@@ -9,11 +9,10 @@
 	import type { MdFilledTextField } from '@material/web/textfield/filled-text-field';
 	import type { MdFilledSelect } from '@material/web/select/filled-select';
 	import { Industry } from '$lib/types';
-	// import { liveInput, create } from './bindings';
 	import { secureLiveInput, type Bucket, editSecure, type SecureOverview } from '$lib/bindings';
 	import { writeText } from '@tauri-apps/api/clipboard';
 	import { goto } from '$app/navigation';
-	import { handleError } from '$lib/errorutils';
+	import { logLoadError, logMsg } from '$lib/errorutils';
 
 	const dispatch = createEventDispatcher();
 
@@ -27,7 +26,6 @@
 	let isValid = false;
 
 	onMount(() => {
-		console.log(account);
 		institution_element.value = account.institution;
 		account_element.value = account.identity;
 		industry_element.value = account.industry;
@@ -56,7 +54,7 @@
 			let institution = institution_element.value;
 			let account = account_element.value;
 			password = await secureLiveInput(institution, account, industry).catch(
-				handleError('forms/CreateSecure.svelte:handleInput')
+				logLoadError('forms/CreateSecure.svelte:handleInput', { institution, account, industry })
 			);
 			dispatch('password', password);
 		}
@@ -86,11 +84,17 @@
 			identity: account,
 			industry
 		};
-		console.log({ id, metadata, specifics, bucket });
-		let newacc = await editSecure(id, metadata, specifics, bucket, null).catch(
-			handleError('forms/CreateSecure.svelte:handleSubmit')
+		const twofactorid = null;
+		logMsg('Editing secure account...', { metadata, specifics, bucket, twofactorid });
+		let newacc = await editSecure(id, metadata, specifics, bucket, twofactorid).catch(
+			logLoadError('forms/EditSecure.svelte:handleSubmit', {
+				metadata,
+				specifics,
+				bucket,
+				twofactorid
+			})
 		);
-		console.log(newacc);
+		logMsg('Secure account edited with id ' + newacc);
 		dispatch('close');
 		goto(`/password/secure/${newacc}`);
 	}

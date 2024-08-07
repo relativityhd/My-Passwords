@@ -1,6 +1,7 @@
 use crate::common::get_user;
 use crate::errors::{AuthError, CookieError, LocalCredsError, UnauthenticatedError};
 use crate::types::{LocalCreds, DB, LC};
+use log::debug;
 use orion::aead;
 use serde::Serialize;
 use serde_json;
@@ -19,9 +20,8 @@ struct Credentials<'a> {
 
 // -- Cookie handling --
 async fn store_cookie(app_data_dir: Option<PathBuf>, token: Jwt) -> Result<(), CookieError> {
-    println!("Setting session cookie");
     let dir = app_data_dir.ok_or(CookieError::AppDataNotFound)?;
-    dbg!(&dir);
+    debug!("Storing cookie in {:?}", &dir);
     if !dir.exists() {
         tokio::fs::create_dir_all(&dir).await?;
     }
@@ -35,9 +35,10 @@ async fn get_token_from_cookie(app_data_dir: Option<PathBuf>) -> Result<Option<J
         .ok_or(CookieError::AppDataNotFound)?
         .join("session-cookie.jwt");
     if !fpath.exists() {
-        println!("No cookie found");
+        debug!("No cookie found");
         return Ok(None);
     }
+    debug!("Reading cookie from {:?}", &fpath);
     let mut file = File::open(fpath).await?;
     let mut contents = vec![];
     file.read_to_end(&mut contents).await?;
@@ -50,6 +51,7 @@ async fn delete_cookie(app_data_dir: Option<PathBuf>) -> Result<(), CookieError>
         .ok_or(CookieError::AppDataNotFound)?
         .join("session-cookie.jwt");
     if fpath.exists() {
+        debug!("Deleting cookie at {:?}", &fpath);
         std::fs::remove_file(fpath)?;
     }
     Ok(())
@@ -62,22 +64,23 @@ pub async fn is_authenticated(app_handle: tauri::AppHandle, db: DB<'_>) -> Resul
     let auth: Option<Thing> = db.query("RETURN $auth;").await?.take(0)?;
     // Be optimistic and assume that the user is authenticated
     if let Some(id) = auth {
-        println!("User is authenticated: {}", id);
+        debug!("User is authenticated: {}", id);
         return Ok(true);
     }
 
     // If the user is not authenticated, try to authenticate with cookie
-    println!("User is not authenticated, try to authenticate with cookie");
+    debug!("User is not authenticated, try to authenticate with cookie");
     let app_data_dir = app_handle.path_resolver().app_data_dir();
     let token = get_token_from_cookie(app_data_dir).await?;
     if let Some(token) = token {
         // TODO: Check if token is still valid and invalidate if not
         // Also extract potential invalidation errors from the authenticate method and put it in a separate error type
         db.authenticate(token).await?;
-        println!("User is now authenticated");
+        debug!("User is now authenticated");
         return Ok(true);
     }
 
+    debug!("User is not authenticated");
     // If the user is not authenticated and no cookie is found, return false
     Ok(false)
 }
@@ -91,7 +94,6 @@ pub async fn signin(
     password: &str,
     remember: bool,
 ) -> Result<(), AuthError> {
-    dbg!("Signing in...", identity, password);
     let token = db
         .signin(Scope {
             namespace: "accounts",
@@ -106,14 +108,12 @@ pub async fn signin(
         .await
         .map_err(|e| match e {
             surrealdb::Error::Api(surrealdb::error::Api::Query(_msg)) => {
-                dbg!("Invalid credentials", _msg);
+                debug!("Invalid credentials: {:?}", _msg);
                 AuthError::InvalidCredentials
             }
             _ => AuthError::Db(e),
         })?;
-    dbg!("Got token", &token);
     db.authenticate(token.clone()).await?;
-    dbg!("Logged in!");
     if remember {
         store_cookie(app_handle.path_resolver().app_data_dir(), token).await?;
     }
@@ -144,13 +144,12 @@ pub async fn signup(
         .await
         .map_err(|e| match e {
             surrealdb::Error::Api(surrealdb::error::Api::Query(_msg)) => {
-                dbg!("Invalid credentials", _msg);
+                debug!("Invalid credentials: {:?}", _msg);
                 AuthError::InvalidCredentials
             }
             _ => AuthError::Db(e),
         })?;
     db.authenticate(token.clone()).await?;
-    println!("Signed up!");
     if remember {
         store_cookie(app_handle.path_resolver().app_data_dir(), token).await?;
     }
@@ -164,12 +163,10 @@ pub async fn signout(
     db: DB<'_>,
     lc: LC<'_>,
 ) -> Result<(), AuthError> {
-    println!("Sign out user");
     let app_data_dir = app_handle.path_resolver().app_data_dir();
     delete_cookie(app_data_dir).await?;
     db.invalidate().await?;
     invalidate_credentials(lc);
-    println!("User signed out");
     Ok(())
 }
 
@@ -201,9 +198,11 @@ pub async fn has_lc(
         .ok_or(LocalCredsError::AppDataNotFound)?
         .join(fname);
     if !fpath.exists() {
-        println!("No lc found");
+        debug!("No lc found");
         return Ok(false);
     }
+
+    debug!("Reading lc from {:?}", &fpath);
 
     // Use hashed password from user to encrypt lc
     let userpw = db
@@ -239,15 +238,14 @@ pub async fn store_lc(
 ) -> Result<(), LocalCredsError> {
     let auth = get_user(db.clone()).await?;
 
-    println!("Setting lc");
     let dir = app_handle
         .path_resolver()
         .app_data_dir()
         .ok_or(LocalCredsError::AppDataNotFound)?;
-    dbg!(&dir);
     if !dir.exists() {
         tokio::fs::create_dir_all(&dir).await?;
     }
+    debug!("Storing lc in {:?}", &dir);
     let fname = format!("{}.cache", auth.id);
     // Use hashed password from user to encrypt lc
     let userpw = db

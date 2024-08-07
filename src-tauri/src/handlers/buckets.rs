@@ -23,7 +23,17 @@ pub async fn create_bucket(
         .bind(("name", bucket_name))
         .bind(("color", bucket_color))
         .await?
-        .take::<Option<Thing>>(0)?
+        .take::<Option<Thing>>(0)
+        .map_err(|e| match e {
+            surrealdb::Error::Api(surrealdb::error::Api::Query(msg))
+                if msg.starts_with(
+                    "Database index `unique_bucket_name_per_user` already contains",
+                ) =>
+            {
+                BucketError::BucketExists
+            }
+            _ => BucketError::Db(e),
+        })?
         .ok_or(BucketError::NoID)?;
 
     Ok(bucket.id.to_string())

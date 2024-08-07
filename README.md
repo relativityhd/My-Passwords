@@ -72,19 +72,19 @@ surreal start --strict --auth --user [ROOT_USER_NAME] --pass [ROOT_USER_PASSWORD
   - [x] GitHub Action aufsetzen
   - [x] SurrealDB aufsetzen (Mit HTTPS und systemd) <https://surrealdb.com/docs/surrealdb/cli/start>
 - [ ] Beta v0.2 (Increase security)
-  - [ ] Improve Error Handling -> Propably propergate the errors from DB and enrich with more information
-  - [ ] Add a logging file
-  - [ ] SuperSecure Mode: Make it time-dependend, e.g. IBM requests password change every 3 months -> LegacySuperSecure?
-  - [ ] Enable and redo "Load Lagacy JSON"
-  - [ ] Run Clippy and remove all println / dbg / console.log and all other warnings
-  - [ ] Input Sanitations
-    - [ ] Bucket name already exists
-    - [ ] Username already exists
+  - [x] Improve Error Handling -> Propably propergate the errors from DB and enrich with more information
+  - [x] Add a logging file
+  - [x] SuperSecure Mode: Make it time-dependend, e.g. IBM requests password change every 3 months -> LegacySuperSecure?
+  - [x] Input Sanitations on Forms
+  - [x] Enable and redo "Load Lagacy JSON"
+  - [ ] Run Clippy and remove all dbg / dbg / console.log and all other warnings
   - [ ] Add Password to DB to disable guest mode
   - [ ] Add possibility for Root to see and delete data from others (?)
+  - [ ] version bump
 - [ ] Beta v0.3 (DB & Offline)
   - [ ] Improve DB Connection Page (UX)
   - [ ] Offline Mode
+  - [ ] Add other databases to allowlist?
 - [ ] Beta v0.4 (Add more features and UX)
   - [ ] Manage Buckets
   - [ ] Create 2FA
@@ -94,14 +94,17 @@ surreal start --strict --auth --user [ROOT_USER_NAME] --pass [ROOT_USER_PASSWORD
   - [ ] Options Page
   - [ ] Add search-aliases for institutions
   - [ ] Add loading indicators
+  - [ ] Add manager for legacy passwords
 - [ ] Beta v0.5 (UI & UX)
   - [ ] Make own Delete-Bucket dialog
+  - [ ] Make bucket color theme agnostic
   - [ ] Random Bucket Wallpaper as theme
   - [ ] Custom Theme builder einbauen & themes local speichern
   - [ ] Drag n Drop resorting of accounts into Buckets on the List Page ([Example](https://svelte.dev/repl/b225504c9fea44b189ed5bfb566df6e6?version=4.2.18))
   - [ ] Automaticly search for institution website and write it to acc-page
   - [ ] Accessibility
 - [ ] Release
+  - [ ] Set prod-log level to warn
   - [ ] Windows signing
   - [ ] MacOD signing
 - [ ] Version Backlog

@@ -4,7 +4,7 @@
 	import PopularCard from '$lib/cards/PopularCard.svelte';
 	import { getSecurePassword, getSupersecurePassword, getLegacyPassword } from '$lib/bindings';
 	import type { PopularResult } from '$lib/bindings';
-	import { get } from 'svelte/store';
+	import { logError } from '$lib/errorutils';
 
 	const dispatch = createEventDispatcher();
 
@@ -14,19 +14,17 @@
 		LegacySecure: getLegacyPassword
 	};
 
-	function selectResult(event: CustomEvent<PopularResult>) {
-		console.log(event.detail);
+	async function selectResult(event: CustomEvent<PopularResult>) {
 		if (event.detail.account_type === 'Sso') return;
 		let fn = getfn[event.detail.account_type];
-		console.log(fn);
 		if (!fn) return;
-		fn(event.detail.id)
-			.then((password) => {
-				dispatch('password', password);
+		const password = await fn(event.detail.id).catch(
+			logError('container/Popular.svelte:selectResult', {
+				id: event.detail.id,
+				account_type: event.detail.account_type
 			})
-			.catch((error) => {
-				console.error(error);
-			});
+		);
+		dispatch('password', password);
 	}
 
 	export let populars: PopularResult[];

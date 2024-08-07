@@ -5,13 +5,15 @@
 	import type { MdOutlinedTextField } from '@material/web/textfield/outlined-text-field';
 	import { signout, storeLc } from '$lib/bindings';
 	import { goto } from '$app/navigation';
-	import { handleError } from '$lib/errorutils.js';
+	import { logLoadError, logMsg } from '$lib/errorutils.js';
 
 	let secret_element: MdOutlinedTextField;
 	let pin_element: MdOutlinedTextField;
 
 	async function signout_user() {
-		await signout().catch(handleError('app/+layout.svelte:signout_user'));
+		logMsg('Sign out user...');
+		await signout().catch(logLoadError('app/+layout.svelte:signout_user'));
+		logMsg('Signed out user');
 		goto('/signin');
 	}
 
@@ -31,7 +33,9 @@
 			pin: new_pin,
 			secret: secret_element.value
 		};
-		await storeLc(new_lc).catch(handleError('app/+layout.svelte:storeLc'));
+		logMsg('Store PIN and Secret...');
+		await storeLc(new_lc).catch(logLoadError('app/+layout.svelte:storeLc'));
+		logMsg('Stored PIN and Secret');
 		data.isPinned = true;
 	}
 

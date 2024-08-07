@@ -11,11 +11,10 @@
 	import type { MdFilledTextField } from '@material/web/textfield/filled-text-field';
 	import type { MdFilledSelect } from '@material/web/select/filled-select';
 	import { Industry, type SerializedError } from '$lib/types';
-	// import { liveInput, create } from './bindings';
 	import { supersecureLiveInput, type Bucket, createSupersecure } from '$lib/bindings';
 	import { writeText } from '@tauri-apps/api/clipboard';
 	import { goto } from '$app/navigation';
-	import { handleError } from '$lib/errorutils';
+	import { logLoadError, logMsg } from '$lib/errorutils';
 
 	const dispatch = createEventDispatcher();
 
@@ -69,9 +68,17 @@
 				max_length
 			).catch((error: SerializedError) => {
 				if (error.status !== 400) {
-					handleError('forms/CreateSuperSecure.svelte:handleInput')(error);
+					logLoadError('forms/CreateSuperSecure.svelte:handleInput', {
+						institution,
+						account,
+						industry,
+						specials,
+						seed,
+						min_length,
+						max_length
+					})(error);
 				}
-				return "Invalid combination, can't generate password";
+				return "Invalid combination, can't generate password. Please try another set of inputs.";
 			});
 			dispatch('password', password);
 		}
@@ -110,11 +117,17 @@
 			min: min_length,
 			max: max_length
 		};
-		console.log({ metadata, specifics, bucket });
-		let newacc = await createSupersecure(metadata, specifics, bucket, null).catch(
-			handleError('forms/CreateSuperSecure.svelte:handleSubmit')
+		const twofactorid = null;
+		logMsg('Creating supersecure account...', { metadata, specifics, bucket, twofactorid });
+		let newacc = await createSupersecure(metadata, specifics, bucket, twofactorid).catch(
+			logLoadError('forms/CreateSuperSecure.svelte:handleSubmit', {
+				metadata,
+				specifics,
+				bucket,
+				twofactorid
+			})
 		);
-		console.log(newacc);
+		logMsg('Created supersecure account with id ' + newacc);
 		goto(`/password/supersecure/${newacc}`);
 	}
 	export let buckets: Bucket[] = [];

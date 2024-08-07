@@ -8,7 +8,7 @@
 	import { signup } from '$lib/bindings';
 	import { goto } from '$app/navigation';
 	import type { SerializedError } from '$lib/types';
-	import { handleError } from '$lib/errorutils';
+	import { logLoadError } from '$lib/errorutils';
 
 	let emailElement: MdFilledTextField;
 	let usernameElement: MdFilledTextField;
@@ -35,17 +35,22 @@
 		let password = passwordElement.value;
 		let remember = rememberElement.value === 'on';
 
-		await signup(email, username, password, remember).catch((err: SerializedError) => {
-			if (err.status === 400) {
+		const signed = await signup(email, username, password, remember)
+			.then(() => {
+				return true;
+			})
+			.catch(async (err: SerializedError) => {
+				if (err.status !== 400) {
+					return await logLoadError('auth/+page:signup')(err);
+				}
 				passwordElement.setCustomValidity('Email or Name already exists!');
-			} else {
-				throw handleError('auth/+page:signup')(err);
-			}
-			passwordElement.reportValidity();
-			isValid = false;
-			throw err;
-		});
-		goto('/');
+				passwordElement.reportValidity();
+				isValid = false;
+				return false;
+			});
+		if (signed) {
+			goto('/');
+		}
 	}
 </script>
 

@@ -73,7 +73,6 @@ impl Serialize for AuthError {
             },
             _ => SerializedError {
                 status: 500,
-                // Also add dbg message
                 message: self.to_string(),
             },
         };
@@ -129,6 +128,8 @@ impl Serialize for LocalCredsError {
 
 #[derive(Debug, Error)]
 pub enum BucketError {
+    #[error("Bucket name already exists.")]
+    BucketExists,
     #[error("Invalid Color: {0:?}, must be 6-digit hex code, e.g. \"#ff0000\"")]
     InvalidColor(String),
     #[error("No Bucket found with id bucket:{0}")]
@@ -145,11 +146,11 @@ impl Serialize for BucketError {
         S: serde::Serializer,
     {
         let serializer_error = match self {
-            BucketError::InvalidColor(e) => SerializedError {
+            BucketError::InvalidColor(_) | BucketError::BucketExists => SerializedError {
                 status: 400,
                 message: self.to_string(),
             },
-            BucketError::NotFound(e) => SerializedError {
+            BucketError::NotFound(_) => SerializedError {
                 status: 404,
                 message: self.to_string(),
             },

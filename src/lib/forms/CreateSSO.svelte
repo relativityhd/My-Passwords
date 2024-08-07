@@ -10,7 +10,7 @@
 	import type { MdFilledSelect } from '@material/web/select/filled-select';
 	import { createSso, type SsoListResult, type Bucket } from '$lib/bindings';
 	import { goto } from '$app/navigation';
-	import { handleError } from '$lib/errorutils';
+	import { logLoadError, logMsg } from '$lib/errorutils';
 
 	let institution_element: MdFilledTextField;
 	let account_element: MdFilledSelect;
@@ -49,11 +49,17 @@
 			recovery
 		};
 
-		console.log({ metadata, ssoaccount_id, bucket });
-		let newacc = await createSso(ssoaccount_id, metadata, bucket, null).catch(
-			handleError('forms/CreateSSO.svelte:handleSubmit')
+		const twofactorid = null;
+		logMsg('Creating SSO account...', { ssoaccount_id, metadata, bucket, twofactorid });
+		let newacc = await createSso(ssoaccount_id, metadata, bucket, twofactorid).catch(
+			logLoadError('forms/CreateSSO.svelte:handleSubmit', {
+				ssoaccount_id,
+				metadata,
+				bucket,
+				twofactorid
+			})
 		);
-		console.log(newacc);
+		logMsg('Created SSO account with id ' + newacc);
 		goto(`/password/${newacc}`);
 	}
 	export let buckets: Bucket[] = [];

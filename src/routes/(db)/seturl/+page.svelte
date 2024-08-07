@@ -7,7 +7,7 @@
 	import { connect } from '$lib/bindings';
 	import { goto } from '$app/navigation';
 	import type { SerializedError } from '$lib/types';
-	import { handleError } from '$lib/errorutils';
+	import { logLoadError } from '$lib/errorutils';
 
 	let urlElement: MdFilledTextField;
 
@@ -15,9 +15,9 @@
 
 	async function handleSubmit() {
 		let url = urlElement.value;
-		await connect(url).catch((err: SerializedError) => {
+		await connect(url).catch(async (err: SerializedError) => {
 			if (err.status !== 400) {
-				handleError('db/seturl/+page.svelte:handleSubmit')(err);
+				await logLoadError('db/seturl/+page.svelte:handleSubmit')(err);
 			}
 			isValid = false;
 			urlElement.setCustomValidity(err.message);

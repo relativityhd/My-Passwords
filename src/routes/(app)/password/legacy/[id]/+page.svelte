@@ -11,7 +11,7 @@
 	import { DateTime } from 'luxon';
 	import { deleteAccount } from '$lib/bindings';
 	import { goto } from '$app/navigation';
-	import { handleError } from '$lib/errorutils.js';
+	import { logLoadError, logMsg } from '$lib/errorutils.js';
 
 	enum View {
 		Overview,
@@ -21,9 +21,11 @@
 	let show: View = View.Overview;
 
 	async function triggerDelete() {
+		logMsg(`Delete legacy account with id ${data.id}...`);
 		await deleteAccount(data.id).catch(
-			handleError('app/password/legacy/+page.svelte:triggerDelete')
+			logLoadError('app/password/legacy/+page.svelte:triggerDelete')
 		);
+		logMsg(`Deleted legacy account with id ${data.id}`);
 		goto('/');
 	}
 

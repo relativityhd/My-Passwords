@@ -9,7 +9,7 @@
 	import { goto } from '$app/navigation';
 	import type { SerializedError } from '$lib/types';
 	import { tick } from 'svelte';
-	import { handleError } from '$lib/errorutils';
+	import { logLoadError } from '$lib/errorutils';
 
 	let identifierElement: MdFilledTextField;
 	let passwordElement: MdFilledTextField;
@@ -22,7 +22,6 @@
 		// Can't use passwordElement.reportValidity() here because it will switch focus to the password field
 		identifierElement.reportValidity();
 		isValid = identifierElement?.validity.valid && passwordElement?.validity.valid;
-		console.debug(isValid, identifierElement.validity, passwordElement.validity);
 		if (e instanceof KeyboardEvent && e.key === 'Enter' && isValid) {
 			handleSubmit();
 			return;
@@ -44,17 +43,22 @@
 		let password = passwordElement.value;
 		let remember = rememberElement.value === 'on';
 
-		await signin(identifier, password, remember).catch((err: SerializedError) => {
-			if (err.status === 400) {
+		const signed = await signin(identifier, password, remember)
+			.then(() => {
+				return true;
+			})
+			.catch(async (err: SerializedError) => {
+				if (err.status !== 400) {
+					return await logLoadError('auth/+page:signin')(err);
+				}
 				passwordElement.setCustomValidity('Invalid credentials');
-			} else {
-				throw handleError('auth/+page:signin')(err);
-			}
-			passwordElement.reportValidity();
-			isValid = false;
-			throw err;
-		});
-		goto('/');
+				passwordElement.reportValidity();
+				isValid = false;
+				return false;
+			});
+		if (signed) {
+			goto('/');
+		}
 	}
 </script>
 
