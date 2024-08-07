@@ -1,10 +1,14 @@
 import { getLegacyOverview, inSsoUse } from '$lib/bindings';
+import { handleError } from '$lib/errorutils';
 
 export async function load({ params }) {
-	const [account, password] = await getLegacyOverview(params.id);
-	const deletelocked = await inSsoUse(params.id);
-	console.log(account);
-	console.log(password);
+	const [[account, password], deletelocked] = await Promise.all([
+		getLegacyOverview(params.id).catch(
+			handleError('app/password/legacy/+page.ts:getLegacyOverview')
+		),
+		inSsoUse(params.id).catch(handleError('app/password/legacy/+page.ts:inSsoUse'))
+	]);
+
 	return { id: params.id, account, password, deletelocked };
 }
 

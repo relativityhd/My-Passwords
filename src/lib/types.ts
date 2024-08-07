@@ -7,3 +7,8 @@ export enum Industry {
 	Science = 'Science', // -> ?
 	Other = 'Other' // -> &
 }
+
+export interface SerializedError {
+	status: number;
+	message: string;
+}

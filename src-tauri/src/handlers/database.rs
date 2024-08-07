@@ -16,6 +16,8 @@ const DBNAME: &str = "dev";
 #[cfg(not(debug_assertions))]
 const DBNAME: &str = "prod";
 
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 async fn store_db_url(app_data_dir: Option<PathBuf>, url: &str) -> Result<(), DatabaseError> {
     print!("Storing db url: {}", url);
     let dir = app_data_dir.ok_or(DatabaseError::AppDataNotFound)?;
@@ -145,6 +147,5 @@ pub async fn is_connected(app_handle: tauri::AppHandle, db: DB<'_>) -> Result<bo
 #[tauri::command]
 #[specta::specta]
 pub async fn version_info() -> Result<String, ()> {
-    let version = env!("CARGO_PKG_VERSION");
-    Ok(format!("v{version}-{DBNAME}"))
+    Ok(format!("v{VERSION}-{DBNAME}"))
 }

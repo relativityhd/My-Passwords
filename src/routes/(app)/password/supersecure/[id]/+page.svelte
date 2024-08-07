@@ -13,6 +13,7 @@
 	import EditSuperSecure from '$lib/forms/EditSuperSecure.svelte';
 	import { deleteAccount } from '$lib/bindings';
 	import { goto } from '$app/navigation';
+	import { handleError } from '$lib/errorutils.js';
 
 	enum View {
 		Overview,
@@ -27,7 +28,9 @@
 	}
 
 	async function triggerDelete() {
-		await deleteAccount(data.id);
+		await deleteAccount(data.id).catch(
+			handleError('app/password/supersecure/+page.svelte:triggerDelete')
+		);
 		goto('/');
 	}
 

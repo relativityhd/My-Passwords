@@ -44,27 +44,6 @@ $ sudo systemctl start surrealdb
 surreal start --strict --auth --user [ROOT_USER_NAME] --pass [ROOT_USER_PASSWORD] 
 ```
 
-## Workflow
-
-```mermaid
----
-title: Database Selection
----
-flowchart LR
-    LoadDB[Load Database]
-    CheckDB[Check Database]
-    ConnectDB[Connect to Database]
-    Auth[Authenticate]
-    DBPage[Show Database Page]
-
-    LoadDB --yes--> Auth
-    LoadDB --no--> DBPage
-    DBPage --> CheckDB
-    CheckDB --yes--> ConnectDB
-    CheckDB --no--> DBPage
-    ConnectDB --> Auth
-```
-
 ## Roadmap
 
 - [x] Beta v0.1
@@ -94,10 +73,13 @@ flowchart LR
   - [x] SurrealDB aufsetzen (Mit HTTPS und systemd) <https://surrealdb.com/docs/surrealdb/cli/start>
 - [ ] Beta v0.2 (Increase security)
   - [ ] Improve Error Handling -> Propably propergate the errors from DB and enrich with more information
+  - [ ] Add a logging file
   - [ ] SuperSecure Mode: Make it time-dependend, e.g. IBM requests password change every 3 months -> LegacySuperSecure?
   - [ ] Enable and redo "Load Lagacy JSON"
   - [ ] Run Clippy and remove all println / dbg / console.log and all other warnings
-  - [ ] Input Sanitation or general better security
+  - [ ] Input Sanitations
+    - [ ] Bucket name already exists
+    - [ ] Username already exists
   - [ ] Add Password to DB to disable guest mode
   - [ ] Add possibility for Root to see and delete data from others (?)
 - [ ] Beta v0.3 (DB & Offline)
@@ -111,6 +93,7 @@ flowchart LR
   - [ ] Create Hand-Written Passwords
   - [ ] Options Page
   - [ ] Add search-aliases for institutions
+  - [ ] Add loading indicators
 - [ ] Beta v0.5 (UI & UX)
   - [ ] Make own Delete-Bucket dialog
   - [ ] Random Bucket Wallpaper as theme
@@ -123,3 +106,4 @@ flowchart LR
   - [ ] MacOD signing
 - [ ] Version Backlog
   - [ ] Dashboard with Statistics
+  - [ ] User Documentation

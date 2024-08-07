@@ -1,5 +1,5 @@
 use crate::common::get_user;
-use crate::errors::AuthError;
+use crate::errors::{AuthError, CookieError, LocalCredsError, UnauthenticatedError};
 use crate::types::{LocalCreds, DB, LC};
 use orion::aead;
 use serde::Serialize;
@@ -17,9 +17,10 @@ struct Credentials<'a> {
     password: &'a str,
 }
 
-async fn store_cookie(app_data_dir: Option<PathBuf>, token: Jwt) -> Result<(), AuthError> {
+// -- Cookie handling --
+async fn store_cookie(app_data_dir: Option<PathBuf>, token: Jwt) -> Result<(), CookieError> {
     println!("Setting session cookie");
-    let dir = app_data_dir.ok_or(AuthError::AppDataNotFound)?;
+    let dir = app_data_dir.ok_or(CookieError::AppDataNotFound)?;
     dbg!(&dir);
     if !dir.exists() {
         tokio::fs::create_dir_all(&dir).await?;
@@ -29,57 +30,56 @@ async fn store_cookie(app_data_dir: Option<PathBuf>, token: Jwt) -> Result<(), A
     Ok(())
 }
 
-#[tauri::command]
-#[specta::specta]
-pub async fn signout(
-    app_handle: tauri::AppHandle,
-    db: DB<'_>,
-    lc: LC<'_>,
-) -> Result<(), AuthError> {
-    let auth = get_user(db.clone()).await?;
-    println!("Sign out user: {}", auth);
-    let fpath = app_handle
-        .path_resolver()
-        .app_data_dir()
-        .ok_or(AuthError::AppDataNotFound)?
+async fn get_token_from_cookie(app_data_dir: Option<PathBuf>) -> Result<Option<Jwt>, CookieError> {
+    let fpath = app_data_dir
+        .ok_or(CookieError::AppDataNotFound)?
+        .join("session-cookie.jwt");
+    if !fpath.exists() {
+        println!("No cookie found");
+        return Ok(None);
+    }
+    let mut file = File::open(fpath).await?;
+    let mut contents = vec![];
+    file.read_to_end(&mut contents).await?;
+    let token = Jwt::from(String::from_utf8(contents)?);
+    Ok(Some(token))
+}
+
+async fn delete_cookie(app_data_dir: Option<PathBuf>) -> Result<(), CookieError> {
+    let fpath = app_data_dir
+        .ok_or(CookieError::AppDataNotFound)?
         .join("session-cookie.jwt");
     if fpath.exists() {
         std::fs::remove_file(fpath)?;
     }
-    db.invalidate().await?;
-
-    let mut state = lc.lock()?;
-    *state = None;
-    println!("User signed out");
     Ok(())
 }
 
+// -- Auth commands --
 #[tauri::command]
 #[specta::specta]
 pub async fn is_authenticated(app_handle: tauri::AppHandle, db: DB<'_>) -> Result<bool, AuthError> {
     let auth: Option<Thing> = db.query("RETURN $auth;").await?.take(0)?;
+    // Be optimistic and assume that the user is authenticated
     if let Some(id) = auth {
         println!("User is authenticated: {}", id);
         return Ok(true);
-    } else {
-        println!("User is not authenticated, try to authenticate with cookie");
-        let fpath = app_handle
-            .path_resolver()
-            .app_data_dir()
-            .ok_or(AuthError::AppDataNotFound)?
-            .join("session-cookie.jwt");
-        if !fpath.exists() {
-            println!("No cookie found");
-            return Ok(false);
-        }
-        let mut file = File::open(fpath).await?;
-        let mut contents = vec![];
-        file.read_to_end(&mut contents).await?;
-        let token = Jwt::from(String::from_utf8(contents)?);
+    }
+
+    // If the user is not authenticated, try to authenticate with cookie
+    println!("User is not authenticated, try to authenticate with cookie");
+    let app_data_dir = app_handle.path_resolver().app_data_dir();
+    let token = get_token_from_cookie(app_data_dir).await?;
+    if let Some(token) = token {
+        // TODO: Check if token is still valid and invalidate if not
+        // Also extract potential invalidation errors from the authenticate method and put it in a separate error type
         db.authenticate(token).await?;
-        print!("User is now authenticated");
+        println!("User is now authenticated");
         return Ok(true);
     }
+
+    // If the user is not authenticated and no cookie is found, return false
+    Ok(false)
 }
 
 #[tauri::command]
@@ -91,7 +91,7 @@ pub async fn signin(
     password: &str,
     remember: bool,
 ) -> Result<(), AuthError> {
-    print!("Signing in...");
+    dbg!("Signing in...", identity, password);
     let token = db
         .signin(Scope {
             namespace: "accounts",
@@ -103,9 +103,17 @@ pub async fn signin(
                 password: &password,
             },
         })
-        .await?;
+        .await
+        .map_err(|e| match e {
+            surrealdb::Error::Api(surrealdb::error::Api::Query(_msg)) => {
+                dbg!("Invalid credentials", _msg);
+                AuthError::InvalidCredentials
+            }
+            _ => AuthError::Db(e),
+        })?;
+    dbg!("Got token", &token);
     db.authenticate(token.clone()).await?;
-    println!("Logged in!");
+    dbg!("Logged in!");
     if remember {
         store_cookie(app_handle.path_resolver().app_data_dir(), token).await?;
     }
@@ -133,7 +141,14 @@ pub async fn signup(
                 password: &password,
             },
         })
-        .await?;
+        .await
+        .map_err(|e| match e {
+            surrealdb::Error::Api(surrealdb::error::Api::Query(_msg)) => {
+                dbg!("Invalid credentials", _msg);
+                AuthError::InvalidCredentials
+            }
+            _ => AuthError::Db(e),
+        })?;
     db.authenticate(token.clone()).await?;
     println!("Signed up!");
     if remember {
@@ -144,13 +159,36 @@ pub async fn signup(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn signout(
+    app_handle: tauri::AppHandle,
+    db: DB<'_>,
+    lc: LC<'_>,
+) -> Result<(), AuthError> {
+    println!("Sign out user");
+    let app_data_dir = app_handle.path_resolver().app_data_dir();
+    delete_cookie(app_data_dir).await?;
+    db.invalidate().await?;
+    invalidate_credentials(lc);
+    println!("User signed out");
+    Ok(())
+}
+
+// -- Local credentials handling --
+fn invalidate_credentials(lc: LC<'_>) {
+    // It is okay to unwrap the lock, because 1. if the lock is poisoned, the program is already in a bad state and we WANT to panic, 2. this application is not multi-threaded, hence poisoning is not possible in the first place
+    let mut state = lc.lock().unwrap();
+    *state = None;
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn has_lc(
     app_handle: tauri::AppHandle,
     db: DB<'_>,
     lc: LC<'_>,
-) -> Result<bool, AuthError> {
+) -> Result<bool, LocalCredsError> {
     // Check if lc is already in memory
-    if lc.lock()?.is_some() {
+    if lc.lock().unwrap().is_some() {
         return Ok(true);
     }
 
@@ -160,7 +198,7 @@ pub async fn has_lc(
     let fpath = app_handle
         .path_resolver()
         .app_data_dir()
-        .ok_or(AuthError::AppDataNotFound)?
+        .ok_or(LocalCredsError::AppDataNotFound)?
         .join(fname);
     if !fpath.exists() {
         println!("No lc found");
@@ -172,7 +210,7 @@ pub async fn has_lc(
         .query("(SELECT password FROM ONLY $auth).password;")
         .await?
         .take::<Option<String>>(0)?
-        .ok_or(AuthError::NoPassword)?;
+        .ok_or(LocalCredsError::NoPasswordFound)?;
 
     // Generate cipher from userpw
     let key = aead::SecretKey::from_slice(&userpw.as_bytes()[..32])?;
@@ -186,7 +224,7 @@ pub async fn has_lc(
     // Deserialize lc
     let newlc: LocalCreds = serde_json::from_slice(&serialized_lc)?;
 
-    let mut state = lc.lock()?;
+    let mut state = lc.lock().unwrap();
     *state = Some(newlc);
     Ok(true)
 }
@@ -198,14 +236,14 @@ pub async fn store_lc(
     db: DB<'_>,
     lc: LC<'_>,
     newlc: LocalCreds,
-) -> Result<(), AuthError> {
+) -> Result<(), LocalCredsError> {
     let auth = get_user(db.clone()).await?;
 
     println!("Setting lc");
     let dir = app_handle
         .path_resolver()
         .app_data_dir()
-        .ok_or(AuthError::AppDataNotFound)?;
+        .ok_or(LocalCredsError::AppDataNotFound)?;
     dbg!(&dir);
     if !dir.exists() {
         tokio::fs::create_dir_all(&dir).await?;
@@ -216,7 +254,7 @@ pub async fn store_lc(
         .query("(SELECT password FROM ONLY $auth).password;")
         .await?
         .take::<Option<String>>(0)?
-        .ok_or(AuthError::NoPassword)?;
+        .ok_or(LocalCredsError::NoPasswordFound)?;
 
     // Generate cipher from userpw
     let key = aead::SecretKey::from_slice(&userpw.as_bytes()[..32])?;
@@ -229,19 +267,19 @@ pub async fn store_lc(
     // Convert lc to bytes
     file.write_all(&encrypted_lc).await?;
 
-    let mut state = lc.lock()?;
+    let mut state = lc.lock().unwrap();
     *state = Some(newlc);
     Ok(())
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn get_username(db: DB<'_>) -> Result<String, AuthError> {
+pub async fn get_username(db: DB<'_>) -> Result<String, UnauthenticatedError> {
     let sql = "(SELECT username FROM ONLY $auth).username;";
     let username: String = db
         .query(sql)
         .await?
         .take::<Option<String>>(0)?
-        .ok_or(AuthError::NotSignedIn)?;
+        .ok_or(UnauthenticatedError::NotSignedIn)?;
     Ok(username)
 }

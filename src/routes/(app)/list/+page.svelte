@@ -9,6 +9,7 @@
 	import type { LegacyData, LegacySuperData } from '$lib/bindings.js';
 	import { ask, open } from '@tauri-apps/api/dialog';
 	import { readTextFile } from '@tauri-apps/api/fs';
+	import { handleError } from '$lib/errorutils.js';
 
 	type ParsedLegacyAccount = {
 		acc: string;
@@ -32,9 +33,8 @@
 			title: 'Delete Bucket',
 			type: 'warning'
 		});
-		console.log(answer);
 		if (!answer) return;
-		await deleteBucket(id);
+		await deleteBucket(id).catch(handleError('app/list/+page.svelte:triggerDelete'));
 		location.reload();
 	}
 
@@ -75,7 +75,7 @@
 			});
 		console.log(legacy, supers);
 
-		await loadFromJson(legacy, supers).catch((e) => console.error(e));
+		await loadFromJson(legacy, supers).catch(handleError('app/list/+page.svelte:load_json'));
 	}
 
 	export let data;

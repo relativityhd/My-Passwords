@@ -1,16 +1,26 @@
-import { redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { isConnected, isAuthenticated, hasLc, getUsername } from '$lib/bindings';
+import type { SerializedError } from '$lib/types';
+import { handleError } from '$lib/errorutils';
 
 /** @type {import('./$types').LayoutLoad} */
 export async function load() {
-	console.log('Check if DB is loaded');
-	if (!(await isConnected())) {
+	const connected = await isConnected().catch(handleError('app/+layout.ts:isConnected'));
+	if (!connected) {
 		throw redirect(307, '/seturl');
 	}
-	console.log('check if authenticated');
-	if (!(await isAuthenticated())) {
+
+	const authenticated = await isAuthenticated().catch(
+		handleError('app/+layout.ts:isAuthenticated')
+	);
+	if (!authenticated) {
 		throw redirect(307, '/signin');
 	}
-	const username = await getUsername();
-	return { isPinned: hasLc(), username };
+
+	const [username, isPinned] = await Promise.all([
+		getUsername().catch(handleError('app/+layout.ts:getUsername')),
+		hasLc().catch(handleError('app/+layout.ts:hasLc'))
+	]);
+
+	return { isPinned, username };
 }

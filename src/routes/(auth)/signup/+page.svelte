@@ -7,6 +7,8 @@
 	import '@material/web/checkbox/checkbox';
 	import { signup } from '$lib/bindings';
 	import { goto } from '$app/navigation';
+	import type { SerializedError } from '$lib/types';
+	import { handleError } from '$lib/errorutils';
 
 	let emailElement: MdFilledTextField;
 	let usernameElement: MdFilledTextField;
@@ -33,10 +35,14 @@
 		let password = passwordElement.value;
 		let remember = rememberElement.value === 'on';
 
-		await signup(email, username, password, remember).catch((err) => {
-			isValid = false;
-			passwordElement.setCustomValidity('Invalid credentials');
+		await signup(email, username, password, remember).catch((err: SerializedError) => {
+			if (err.status === 400) {
+				passwordElement.setCustomValidity('Email or Name already exists!');
+			} else {
+				throw handleError('auth/+page:signup')(err);
+			}
 			passwordElement.reportValidity();
+			isValid = false;
 			throw err;
 		});
 		goto('/');
@@ -102,6 +108,10 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 16px;
+	}
+
+	md-filled-text-field {
+		width: 300px;
 	}
 
 	.remember-label {

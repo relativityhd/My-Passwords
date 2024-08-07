@@ -8,6 +8,8 @@
 	// import { liveInput, create } from './bindings';
 	import ColorPicker, { ChromeVariant } from 'svelte-awesome-color-picker';
 	import { createBucket } from '$lib/bindings';
+	import { handleError } from '$lib/errorutils';
+	import type { SerializedError } from '$lib/types';
 
 	let name_element: MdFilledTextField;
 
@@ -36,7 +38,9 @@
 			name,
 			hex
 		});
-		let newbucket = await createBucket(name, hex);
+		let newbucket = await createBucket(name, hex).catch(
+			handleError('forms/CreateBucket.svelte:handleSubmit')
+		);
 		console.log(newbucket);
 		location.reload();
 	}

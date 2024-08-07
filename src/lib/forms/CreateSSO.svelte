@@ -10,6 +10,7 @@
 	import type { MdFilledSelect } from '@material/web/select/filled-select';
 	import { createSso, type SsoListResult, type Bucket } from '$lib/bindings';
 	import { goto } from '$app/navigation';
+	import { handleError } from '$lib/errorutils';
 
 	let institution_element: MdFilledTextField;
 	let account_element: MdFilledSelect;
@@ -49,7 +50,9 @@
 		};
 
 		console.log({ metadata, ssoaccount_id, bucket });
-		let newacc = await createSso(ssoaccount_id, metadata, bucket, null);
+		let newacc = await createSso(ssoaccount_id, metadata, bucket, null).catch(
+			handleError('forms/CreateSSO.svelte:handleSubmit')
+		);
 		console.log(newacc);
 		goto(`/password/${newacc}`);
 	}

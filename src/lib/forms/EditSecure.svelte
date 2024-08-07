@@ -13,6 +13,7 @@
 	import { secureLiveInput, type Bucket, editSecure, type SecureOverview } from '$lib/bindings';
 	import { writeText } from '@tauri-apps/api/clipboard';
 	import { goto } from '$app/navigation';
+	import { handleError } from '$lib/errorutils';
 
 	const dispatch = createEventDispatcher();
 
@@ -54,7 +55,9 @@
 			let industry = industry_element.value as Industry;
 			let institution = institution_element.value;
 			let account = account_element.value;
-			password = await secureLiveInput(institution, account, industry);
+			password = await secureLiveInput(institution, account, industry).catch(
+				handleError('forms/CreateSecure.svelte:handleInput')
+			);
 			dispatch('password', password);
 		}
 		return handleInput;
@@ -84,7 +87,9 @@
 			industry
 		};
 		console.log({ id, metadata, specifics, bucket });
-		let newacc = await editSecure(id, metadata, specifics, bucket, null);
+		let newacc = await editSecure(id, metadata, specifics, bucket, null).catch(
+			handleError('forms/CreateSecure.svelte:handleSubmit')
+		);
 		console.log(newacc);
 		dispatch('close');
 		goto(`/password/secure/${newacc}`);

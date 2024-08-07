@@ -10,11 +10,12 @@
 	import type { MdSlider } from '@material/web/slider/slider';
 	import type { MdFilledTextField } from '@material/web/textfield/filled-text-field';
 	import type { MdFilledSelect } from '@material/web/select/filled-select';
-	import { Industry } from '$lib/types';
+	import { Industry, type SerializedError } from '$lib/types';
 	// import { liveInput, create } from './bindings';
 	import { supersecureLiveInput, type Bucket, createSupersecure } from '$lib/bindings';
 	import { writeText } from '@tauri-apps/api/clipboard';
 	import { goto } from '$app/navigation';
+	import { handleError } from '$lib/errorutils';
 
 	const dispatch = createEventDispatcher();
 
@@ -58,17 +59,21 @@
 			let seed = parseInt(seed_element.value);
 			let min_length = range_element.valueStart as number;
 			let max_length = range_element.valueEnd as number;
-			supersecureLiveInput(institution, account, industry, specials, seed, min_length, max_length)
-				.then((res) => {
-					password = res;
-					dispatch('password', password);
-				})
-				.catch((error) => {
-					console.error(error);
-					password = error;
-					dispatch('password', password);
-					isValid = false;
-				});
+			password = await supersecureLiveInput(
+				institution,
+				account,
+				industry,
+				specials,
+				seed,
+				min_length,
+				max_length
+			).catch((error: SerializedError) => {
+				if (error.status !== 400) {
+					handleError('forms/CreateSuperSecure.svelte:handleInput')(error);
+				}
+				return "Invalid combination, can't generate password";
+			});
+			dispatch('password', password);
 		}
 		return handleInput;
 	}
@@ -106,7 +111,9 @@
 			max: max_length
 		};
 		console.log({ metadata, specifics, bucket });
-		let newacc = await createSupersecure(metadata, specifics, bucket, null);
+		let newacc = await createSupersecure(metadata, specifics, bucket, null).catch(
+			handleError('forms/CreateSuperSecure.svelte:handleSubmit')
+		);
 		console.log(newacc);
 		goto(`/password/supersecure/${newacc}`);
 	}

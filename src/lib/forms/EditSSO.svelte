@@ -60,7 +60,9 @@
 		};
 
 		console.log({ id, metadata, ssoaccount_id, bucket });
-		let newacc = await editSso(id, ssoaccount_id, metadata, bucket, null);
+		let newacc = await editSso(id, ssoaccount_id, metadata, bucket, null).catch(
+			handleError('forms/EditSSO.svelte:handleSubmit')
+		);
 		console.log(newacc);
 		dispatch('close');
 		goto(`/password/sso/${newacc}`);

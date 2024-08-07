@@ -358,5 +358,5 @@ pub fn gen_super_pw(
     }
 
     // Fallback password
-    Err(GenerationError::UnableToGenerate)
+    Err(GenerationError)
 }

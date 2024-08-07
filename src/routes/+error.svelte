@@ -15,6 +15,7 @@
 
 <h1>{$page.status} Something went wrong :(</h1>
 <p>{$page.error?.message}</p>
+<p>Current route: {$page.url.pathname}</p>
 
 <md-filled-button href="/">Home</md-filled-button>
 <md-outlined-button on:click={signout_user} on:keypress={signout_user} role="button" tabindex="0"

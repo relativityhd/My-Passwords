@@ -7,6 +7,9 @@
 	import '@material/web/checkbox/checkbox';
 	import { signin } from '$lib/bindings';
 	import { goto } from '$app/navigation';
+	import type { SerializedError } from '$lib/types';
+	import { tick } from 'svelte';
+	import { handleError } from '$lib/errorutils';
 
 	let identifierElement: MdFilledTextField;
 	let passwordElement: MdFilledTextField;
@@ -14,19 +17,41 @@
 
 	let isValid = false;
 
+	function handleIdentifierPress(e: KeyboardEvent | Event) {
+		passwordElement.setCustomValidity('');
+		// Can't use passwordElement.reportValidity() here because it will switch focus to the password field
+		identifierElement.reportValidity();
+		isValid = identifierElement?.validity.valid && passwordElement?.validity.valid;
+		console.debug(isValid, identifierElement.validity, passwordElement.validity);
+		if (e instanceof KeyboardEvent && e.key === 'Enter' && isValid) {
+			handleSubmit();
+			return;
+		}
+	}
+
+	function handlePasswordPress(e: KeyboardEvent | Event) {
+		passwordElement.setCustomValidity('');
+		passwordElement.reportValidity();
+		isValid = identifierElement?.validity.valid && passwordElement?.validity.valid;
+		if (e instanceof KeyboardEvent && e.key === 'Enter' && isValid) {
+			handleSubmit();
+			return;
+		}
+	}
+
 	async function handleSubmit() {
 		let identifier = identifierElement.value;
 		let password = passwordElement.value;
 		let remember = rememberElement.value === 'on';
 
-		console.log(identifierElement?.validity.valid);
-		console.log(passwordElement?.validity.valid);
-
-		await signin(identifier, password, remember).catch((err) => {
-			console.log(err);
-			isValid = false;
-			passwordElement.setCustomValidity('Invalid credentials');
+		await signin(identifier, password, remember).catch((err: SerializedError) => {
+			if (err.status === 400) {
+				passwordElement.setCustomValidity('Invalid credentials');
+			} else {
+				throw handleError('auth/+page:signin')(err);
+			}
 			passwordElement.reportValidity();
+			isValid = false;
 			throw err;
 		});
 		goto('/');
@@ -45,16 +70,11 @@
 			type="text"
 			value=""
 			required
-			on:change={() => {
-				passwordElement.setCustomValidity('');
-				identifierElement.reportValidity();
-				isValid = identifierElement.validity.valid && passwordElement.validity.valid;
-			}}
-			on:input={() => {
-				passwordElement.setCustomValidity('');
-				identifierElement.reportValidity();
-				isValid = identifierElement.validity.valid && passwordElement.validity.valid;
-			}}
+			on:change={handleIdentifierPress}
+			on:keypress={handleIdentifierPress}
+			aria-roledescription="identifier"
+			role="textbox"
+			tabindex="0"
 		/>
 		<md-filled-text-field
 			bind:this={passwordElement}
@@ -62,16 +82,11 @@
 			value=""
 			type="password"
 			required
-			on:change={() => {
-				passwordElement.setCustomValidity('');
-				passwordElement.reportValidity();
-				isValid = identifierElement.validity.valid && passwordElement.validity.valid;
-			}}
-			on:input={() => {
-				passwordElement.setCustomValidity('');
-				passwordElement.reportValidity();
-				isValid = identifierElement.validity.valid && passwordElement.validity.valid;
-			}}
+			on:change={handlePasswordPress}
+			on:keypress={handlePasswordPress}
+			aria-roledescription="password"
+			role="textbox"
+			tabindex="0"
 		/>
 	</div>
 	<div class="remember-label">
@@ -97,6 +112,10 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 16px;
+	}
+
+	md-filled-text-field {
+		width: 300px;
 	}
 
 	.remember-label {
