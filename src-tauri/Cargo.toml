@@ -1,6 +1,6 @@
 [package]
 name = "my-passwords"
-version = "0.1.0"
+version = "0.2.0"
 description = "A hand-made easy-to-remember password generator and manager."
 authors = ["Tobias Hölzer<tobiashoelzer@hotmail.com>"]
 license = ""

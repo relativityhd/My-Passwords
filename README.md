@@ -28,7 +28,7 @@ Description=SurrealDB Server
 After=network.target
 
 [Service]
-ExecStart=/path/to/surrealdb start --strict --auth --user [ROOT_USER_NAME] --pass [ROOT_USER_PASSWORD] file:/home/surreal-runner/mydatabase.db
+ExecStart=/path/to/surrealdb start --allow-guests --strict --auth --user [ROOT_USER_NAME] --pass [ROOT_USER_PASSWORD] file:/home/surreal-runner/mydatabase.db
 Restart=always
 User=surreal-runner
 
@@ -77,10 +77,7 @@ surreal start --strict --auth --user [ROOT_USER_NAME] --pass [ROOT_USER_PASSWORD
   - [x] SuperSecure Mode: Make it time-dependend, e.g. IBM requests password change every 3 months -> LegacySuperSecure?
   - [x] Input Sanitations on Forms
   - [x] Enable and redo "Load Lagacy JSON"
-  - [ ] Run Clippy and remove all dbg / dbg / console.log and all other warnings
-  - [ ] Add Password to DB to disable guest mode
-  - [ ] Add possibility for Root to see and delete data from others (?)
-  - [ ] version bump
+  - [x] Run Clippy and remove all dbg / dbg / console.log and all other warnings
 - [ ] Beta v0.3 (DB & Offline)
   - [ ] Improve DB Connection Page (UX)
   - [ ] Offline Mode

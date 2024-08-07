@@ -55,9 +55,8 @@ struct Credentials<'a> {
     password: &'a str,
 }
 
-async fn set_version(auth: &SurrealAuth) {
+async fn set_version(auth: &SurrealAuth, version: &str) {
     println!("Setting version");
-    let version = env!("CARGO_PKG_VERSION");
     println!("Version: {}", version);
 
     let db = if auth.secure {
@@ -150,8 +149,8 @@ fn import_surreal_file(file: &str, auth: &SurrealAuth) {
 
 async fn setup_db(auth: &SurrealAuth) {
     println!(
-        "Setting up database with user: {}, password: {}, namespace: {}, database: {}",
-        &auth.user, &auth.password, &auth.namespace, &auth.database
+        "Setting up database with user: {}, password: ***, namespace: {}, database: {}",
+        &auth.user, &auth.namespace, &auth.database
     );
     // Create namespace and database if not exists
     let db = if auth.secure {
@@ -202,20 +201,26 @@ async fn setup_db(auth: &SurrealAuth) {
         let file = entry.unwrap().path();
         import_surreal_file(file.as_os_str().to_str().unwrap(), auth);
     }
-    set_version(&auth).await;
+    set_version(&auth, "0.2.0").await;
 }
 
 async fn migrate_db(auth: &SurrealAuth) {
     let version = env!("CARGO_PKG_VERSION");
     println!(
-        "Migrating database with user: {}, password: {}, namespace: {}, database: {} to version {}",
-        &auth.user, &auth.password, &auth.namespace, &auth.database, version
+        "Migrating database with user: {}, password: ***, namespace: {}, database: {} to version {}",
+        &auth.user, &auth.namespace, &auth.database, version
     );
+
+    if version == "0.2.0" {
+        set_version(&auth, version).await;
+        println!("No migration needed for version 0.2.0");
+        return;
+    }
 
     let p = Path::new("migrate").join(format!("{}.surql", version));
     if p.exists() {
         import_surreal_file(p.as_os_str().to_str().unwrap(), auth);
-        set_version(&auth).await;
+        set_version(&auth, version).await;
     } else {
         println!("No migration file found for version {}", version);
     }
