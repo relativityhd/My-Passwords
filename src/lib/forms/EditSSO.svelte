@@ -10,6 +10,7 @@
 	import type { MdFilledSelect } from '@material/web/select/filled-select';
 	import { editSso, type SsoListResult, type Bucket, type SsoOverview } from '$lib/bindings';
 	import { goto } from '$app/navigation';
+	import { handleError } from '$lib/errorutils';
 
 	const dispatch = createEventDispatcher();
 
