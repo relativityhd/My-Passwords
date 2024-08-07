@@ -1,8 +1,5 @@
 name: Show Me the S3cr3tz
-on:
-  push:
-    branches:
-      - v02-beta
+on: push
 
 jobs:
   debug:
