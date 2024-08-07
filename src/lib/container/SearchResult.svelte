@@ -45,10 +45,7 @@
 			<div class="right">
 				<p>{result.identity}</p>
 				<md-filled-icon-button
-					on:click|stopPropagation={() => {
-						console.log('gotclicked');
-						goto(`/password/${result.id}`);
-					}}
+					on:click|stopPropagation={() => goto(`/password/${result.id}`)}
 					on:keypress|stopPropagation={() => goto(`/password/${result.id}`)}
 					role="button"
 					aria-label="Goto password page"

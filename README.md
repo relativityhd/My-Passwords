@@ -10,7 +10,7 @@ Start DB in memory
 surreal start --strict memory
 ```
 
-*or via Surrealist.*
+_or via Surrealist._
 
 First time-init:
 
@@ -28,7 +28,7 @@ Description=SurrealDB Server
 After=network.target
 
 [Service]
-ExecStart=/path/to/surrealdb start --strict --auth --user [ROOT_USER_NAME] --pass [ROOT_USER_PASSWORD] file:/home/surreal-runner/mydatabase.db
+ExecStart=/path/to/surrealdb start --allow-guests --strict --auth --user [ROOT_USER_NAME] --pass [ROOT_USER_PASSWORD] file:/home/surreal-runner/mydatabase.db
 Restart=always
 User=surreal-runner
 
@@ -41,33 +41,12 @@ $ sudo systemctl start surrealdb
 ```
 
 ```sh
-surreal start --strict --auth --user [ROOT_USER_NAME] --pass [ROOT_USER_PASSWORD] 
-```
-
-## Workflow
-
-```mermaid
----
-title: Database Selection
----
-flowchart LR
-    LoadDB[Load Database]
-    CheckDB[Check Database]
-    ConnectDB[Connect to Database]
-    Auth[Authenticate]
-    DBPage[Show Database Page]
-
-    LoadDB --yes--> Auth
-    LoadDB --no--> DBPage
-    DBPage --> CheckDB
-    CheckDB --yes--> ConnectDB
-    CheckDB --no--> DBPage
-    ConnectDB --> Auth
+surreal start --strict --auth --user [ROOT_USER_NAME] --pass [ROOT_USER_PASSWORD]
 ```
 
 ## Roadmap
 
-- [ ] Beta v0.1
+- [x] Beta v0.1
   - [x] Create Secure
   - [x] Secure Password Site
   - [x] Edit Secure
@@ -90,28 +69,42 @@ flowchart LR
   - [x] Dynamic Username Top left corner
   - [x] Wallpaper Credits auf Logic Page und in pot. Footer
   - [x] Change version numbers & author information in all config files (Cargo.toml, package.json, etc.)
-  - [ ] GitHub Action aufsetzen
+  - [x] GitHub Action aufsetzen
   - [x] SurrealDB aufsetzen (Mit HTTPS und systemd) <https://surrealdb.com/docs/surrealdb/cli/start>
-- [ ] Version Backlog
-  - [ ] Run Clippy and remove all println / dbg / console.log and all other warnings
-  - [ ] Enable and redo "Load Lagacy JSON"
-  - [ ] Improve Error Handling -> Propably propergate the errors from DB and enrich with more information
-  - [ ] Input Sanitation or general better security
-  - [ ] Improve DB Connection Page
+- [x] Beta v0.2 (Increase security)
+  - [x] Improve Error Handling -> Propably propergate the errors from DB and enrich with more information
+  - [x] Add a logging file
+  - [x] SuperSecure Mode: Make it time-dependend, e.g. IBM requests password change every 3 months -> LegacySuperSecure?
+  - [x] Input Sanitations on Forms
+  - [x] Enable and redo "Load Lagacy JSON"
+  - [x] Run Clippy and remove all dbg / dbg / console.log and all other warnings
+- [ ] Beta v0.3 (DB & Offline)
+  - [ ] Improve DB Connection Page (UX)
   - [ ] Offline Mode
-  - [ ] Make own Delete-Bucket dialog
+  - [ ] Add other databases to allowlist?
+- [ ] Beta v0.4 (Add more features and UX)
   - [ ] Manage Buckets
   - [ ] Create 2FA
   - [ ] Manage 2FA
-  - [ ] Archive - Handling
-  - [ ] Dashboard with Statistics
+  - [ ] Archive - Handling password deletions so one can look at them in a history -> link deleted passwords
   - [ ] Create Hand-Written Passwords
+  - [ ] Options Page
+  - [ ] Add search-aliases for institutions
+  - [ ] Add loading indicators
+  - [ ] Add manager for legacy passwords
+- [ ] Beta v0.5 (UI & UX)
+  - [ ] Make own Delete-Bucket dialog
+  - [ ] Make bucket color theme agnostic
   - [ ] Random Bucket Wallpaper as theme
   - [ ] Custom Theme builder einbauen & themes local speichern
-  - [ ] Options Page
   - [ ] Drag n Drop resorting of accounts into Buckets on the List Page ([Example](https://svelte.dev/repl/b225504c9fea44b189ed5bfb566df6e6?version=4.2.18))
-  - [ ] Accessibility
   - [ ] Automaticly search for institution website and write it to acc-page
-  - [ ] Add search-aliases for institutions
-  - [ ] Add a password history to the password page (link disabled accounts)
-  - [ ] SuperSecure Mode: Make it time-dependend, e.g. IBM requests password change every 3 months
+  - [ ] Accessibility
+- [ ] Release
+  - [ ] Set prod-log level to warn
+  - [ ] Windows signing
+  - [ ] MacOD signing
+- [ ] Version Backlog
+  - [ ] Dashboard with Statistics
+  - [ ] User Documentation
+  - [ ] Add password to connect to database

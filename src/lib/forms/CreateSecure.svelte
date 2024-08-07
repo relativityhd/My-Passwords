@@ -9,10 +9,10 @@
 	import type { MdFilledTextField } from '@material/web/textfield/filled-text-field';
 	import type { MdFilledSelect } from '@material/web/select/filled-select';
 	import { Industry } from '$lib/types';
-	// import { liveInput, create } from './bindings';
 	import { secureLiveInput, type Bucket, createSecure } from '$lib/bindings';
 	import { writeText } from '@tauri-apps/api/clipboard';
 	import { goto } from '$app/navigation';
+	import { logError, logMsg } from '$lib/errorutils';
 
 	const dispatch = createEventDispatcher();
 
@@ -45,7 +45,9 @@
 			let industry = industry_element.value as Industry;
 			let institution = institution_element.value;
 			let account = account_element.value;
-			password = await secureLiveInput(institution, account, industry);
+			password = await secureLiveInput(institution, account, industry).catch(
+				logError('forms/CreateSecure.svelte:handleInput', { institution, account, industry })
+			);
 			dispatch('password', password);
 		}
 		return handleInput;
@@ -75,9 +77,17 @@
 			identity: account,
 			industry
 		};
-		console.log({ metadata, specifics, bucket });
-		let newacc = await createSecure(metadata, specifics, bucket, null);
-		console.log(newacc);
+		const twofactorid = null;
+		logMsg('Creating secure account...', { metadata, specifics, bucket, twofactorid });
+		let newacc = await createSecure(metadata, specifics, bucket, twofactorid).catch(
+			logError('forms/CreateSecure.svelte:handleSubmit', {
+				metadata,
+				specifics,
+				bucket,
+				twofactorid
+			})
+		);
+		logMsg('Secure account created with id ' + newacc);
 		goto(`/password/${newacc}`);
 	}
 	export let buckets: Bucket[] = [];

@@ -4,7 +4,6 @@
 	import '@material/web/list/list';
 	import '@material/web/list/list-item';
 	import '@material/web/divider/divider';
-	import { DateTime } from 'luxon';
 
 	const icons = {
 		SuperSecure: 'shield_lock',

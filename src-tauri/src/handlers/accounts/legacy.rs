@@ -133,13 +133,8 @@ pub async fn load_from_json(
             .await?;
         let legacycreated: Vec<Record> = db
             .create("legacy_account")
-            .content(NewLegacy { industry: industry })
+            .content(NewLegacy { industry })
             .await?;
-        if created.len() != 1 || legacycreated.len() != 1 {
-            dbg!(created);
-            dbg!(legacycreated);
-            return Err(AccountError::NoID);
-        }
         let sql = "RELATE $account->is_legacy->$legacy_account;";
         db.query(sql)
             .bind(("account", &created[0].id))

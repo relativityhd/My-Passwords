@@ -3,7 +3,6 @@
 	import { goto } from '$app/navigation';
 	import type { MdOutlinedTextField } from '@material/web/textfield/outlined-text-field';
 	import SearchResultContainer from '$lib/container/SearchResult.svelte';
-
 	import {
 		search,
 		getSecurePassword,
@@ -11,6 +10,7 @@
 		getLegacyPassword
 	} from '$lib/bindings';
 	import type { SearchResult } from '$lib/bindings';
+	import { logError } from '$lib/errorutils';
 
 	const dispatch = createEventDispatcher();
 
@@ -22,36 +22,26 @@
 	let search_results: SearchResult[] = [];
 
 	let search_error = '';
-	$: search_results_visible = search_results.length > 0;
+
+	async function triggerSearch() {
+		const results = await search(searchterm).catch(
+			logError('container/Search.svelte:triggerSearch', { searchterm })
+		);
+		if (results.length == 0) {
+			search_error = 'No results found.';
+		}
+		search_results = results;
+	}
 
 	function handleSearchInput() {
+		clearTimeout(timeout); // Debounce
 		searchterm = search_element.value;
 		search_error = '';
 		if (searchterm.length < 2) {
 			search_results = [];
-			search_results_visible = false;
-			clearTimeout(timeout);
 			return;
 		}
-		search_results_visible = true;
-
-		clearTimeout(timeout);
-
-		timeout = setTimeout(() => {
-			console.log('searching for', searchterm);
-			search(searchterm)
-				.then((results) => {
-					if (results.length == 0) {
-						search_error = 'No results found.';
-					}
-					search_results = results;
-					console.log(search_results);
-				})
-				.catch((error) => {
-					console.error(error);
-					search_error = 'An error occurred while searching. Please try again later.';
-				});
-		}, delay);
+		timeout = setTimeout(triggerSearch, delay);
 	}
 
 	let getfn = {
@@ -60,19 +50,19 @@
 		LegacySecure: getLegacyPassword
 	};
 
-	function selectPassword(event: CustomEvent<SearchResult>) {
+	async function selectPassword(event: CustomEvent<SearchResult>) {
 		search_results = [];
 
 		if (event.detail.account_type === 'Sso') return goto(`/password/sso/${event.detail.id}`);
 		let fn = getfn[event.detail.account_type];
 		if (!fn) return;
-		fn(event.detail.id)
-			.then((password) => {
-				dispatch('password', password);
+		const password = await fn(event.detail.id).catch(
+			logError('container/Search.svelte:selectPassword', {
+				id: event.detail.id,
+				account_type: event.detail.account_type
 			})
-			.catch((error) => {
-				console.error(error);
-			});
+		);
+		dispatch('password', password);
 	}
 </script>
 

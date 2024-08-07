@@ -10,6 +10,7 @@
 	import type { MdFilledSelect } from '@material/web/select/filled-select';
 	import { editSso, type SsoListResult, type Bucket, type SsoOverview } from '$lib/bindings';
 	import { goto } from '$app/navigation';
+	import { logLoadError, logMsg } from '$lib/errorutils';
 
 	const dispatch = createEventDispatcher();
 
@@ -22,7 +23,6 @@
 	let isValid = false;
 
 	onMount(() => {
-		console.log(account);
 		account_element.value = account.ssoaccount_id;
 		institution_element.value = account.institution;
 		if (account.bucket) {
@@ -58,10 +58,18 @@
 			alias: [],
 			recovery
 		};
-
-		console.log({ id, metadata, ssoaccount_id, bucket });
-		let newacc = await editSso(id, ssoaccount_id, metadata, bucket, null);
-		console.log(newacc);
+		let twofactorid = null;
+		logMsg('Editing SSO account...', { ssoaccount_id, metadata, bucket, twofactorid });
+		let newacc = await editSso(id, ssoaccount_id, metadata, bucket, twofactorid).catch(
+			logLoadError('forms/EditSSO.svelte:handleSubmit', {
+				id,
+				metadata,
+				ssoaccount_id,
+				bucket,
+				twofactorid
+			})
+		);
+		logMsg('Edited SSO account with id ' + newacc);
 		dispatch('close');
 		goto(`/password/sso/${newacc}`);
 	}

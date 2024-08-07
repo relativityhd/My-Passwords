@@ -5,18 +5,19 @@
 	import type { MdOutlinedTextField } from '@material/web/textfield/outlined-text-field';
 	import { signout, storeLc } from '$lib/bindings';
 	import { goto } from '$app/navigation';
-
-	async function signout_user() {
-		await signout().catch((err) => {
-			console.log(err);
-		});
-		goto('/signin');
-	}
+	import { logLoadError, logMsg } from '$lib/errorutils.js';
 
 	let secret_element: MdOutlinedTextField;
 	let pin_element: MdOutlinedTextField;
 
-	function savePin() {
+	async function signout_user() {
+		logMsg('Sign out user...');
+		await signout().catch(logLoadError('app/+layout.svelte:signout_user'));
+		logMsg('Signed out user');
+		goto('/signin');
+	}
+
+	async function savePin() {
 		let new_pin = parseInt(pin_element.value);
 		if (isNaN(new_pin)) {
 			pin_element.setCustomValidity('PIN must be numeric');
@@ -32,13 +33,10 @@
 			pin: new_pin,
 			secret: secret_element.value
 		};
-		storeLc(new_lc)
-			.then(() => {
-				data.isPinned = true;
-			})
-			.catch((err) => {
-				console.log(err);
-			});
+		logMsg('Store PIN and Secret...');
+		await storeLc(new_lc).catch(logLoadError('app/+layout.svelte:storeLc'));
+		logMsg('Stored PIN and Secret');
+		data.isPinned = true;
 	}
 
 	export let data;

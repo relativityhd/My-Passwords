@@ -9,6 +9,7 @@
 	import type { LegacyData, LegacySuperData } from '$lib/bindings.js';
 	import { ask, open } from '@tauri-apps/api/dialog';
 	import { readTextFile } from '@tauri-apps/api/fs';
+	import { logLoadError, logMsg } from '$lib/errorutils.js';
 
 	type ParsedLegacyAccount = {
 		acc: string;
@@ -32,9 +33,10 @@
 			title: 'Delete Bucket',
 			type: 'warning'
 		});
-		console.log(answer);
 		if (!answer) return;
-		await deleteBucket(id);
+		logMsg(`Delete bucket with id ${id}...`);
+		await deleteBucket(id).catch(logLoadError('app/list/+page.svelte:triggerDelete'));
+		logMsg(`Deleted bucket with id ${id}...`);
 		location.reload();
 	}
 
@@ -47,11 +49,9 @@
 				}
 			]
 		});
-		console.log(f);
-		if (!f) return;
-		let data = await readTextFile(f as string);
+		if (!f || typeof f !== 'string') return;
+		let data = await readTextFile(f);
 		let parsed: ParsedLegacyAccount[] = JSON.parse(data);
-		console.log(parsed);
 		let legacy: LegacyData[] = parsed
 			.filter((a) => !a.mode)
 			.map((a) => {
@@ -73,9 +73,19 @@
 					seed: parseInt(a.year) + 2000
 				};
 			});
-		console.log(legacy, supers);
-
-		await loadFromJson(legacy, supers).catch((e) => console.error(e));
+		let answer = await ask(
+			`Loaded ${legacy.length} legacy-secures and ${supers.length} super-secure accounts. Continue?\n\nThis will try to load all accounts into the database. The added password can be deleted manually.`,
+			{
+				title: 'My-Passwords: Legacy Data loaded',
+				type: 'info'
+			}
+		);
+		if (!answer) return;
+		logMsg(
+			`Loading legacy data (${supers.length} super-secure and ${legacy.length} legacy-secures) from JSON file...`
+		);
+		await loadFromJson(legacy, supers).catch(logLoadError('app/list/+page.svelte:load_json'));
+		logMsg(`Loaded legacy data`);
 	}
 
 	export let data;
@@ -102,7 +112,7 @@
 					on:keypress={() => triggerDelete(id)}
 					role="button"
 					aria-label="Delete Bucket"
-					tabindex="0">Delete Bucket</md-outlined-button
+					tabindex="0">Delete Bucket "{name}"</md-outlined-button
 				>
 			</div>
 		{/each}
@@ -116,7 +126,7 @@
 
 	<md-divider style="margin: 32px 0;" />
 
-	<CreateBucket />
+	<CreateBucket on:created={() => location.reload()} />
 
 	<md-divider style="margin: 32px 0;" />
 

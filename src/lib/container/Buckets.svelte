@@ -9,7 +9,7 @@
 <h3 class="headline">Buckets</h3>
 
 <div class="flex-container">
-	{#each buckets as { id, name, color, n }, i}
+	{#each buckets as { id, name, color, n }}
 		<BucketCard {id} {name} {color} {n} />
 	{/each}
 </div>

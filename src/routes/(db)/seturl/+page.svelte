@@ -6,6 +6,8 @@
 	import '@material/web/checkbox/checkbox';
 	import { connect } from '$lib/bindings';
 	import { goto } from '$app/navigation';
+	import type { SerializedError } from '$lib/types';
+	import { logLoadError } from '$lib/errorutils';
 
 	let urlElement: MdFilledTextField;
 
@@ -13,12 +15,13 @@
 
 	async function handleSubmit() {
 		let url = urlElement.value;
-		await connect(url).catch((err) => {
-			console.log(err);
+		await connect(url).catch(async (err: SerializedError) => {
+			if (err.status !== 400) {
+				await logLoadError('db/seturl/+page.svelte:handleSubmit')(err);
+			}
 			isValid = false;
-			urlElement.setCustomValidity('Invalid URL');
+			urlElement.setCustomValidity(err.message);
 			urlElement.reportValidity();
-			throw err;
 		});
 		goto('/');
 	}

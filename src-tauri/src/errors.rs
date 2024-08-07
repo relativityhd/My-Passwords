@@ -1,31 +1,64 @@
-use std::sync::PoisonError;
+use std::fmt::format;
 
 use serde::Serialize;
 use thiserror::Error;
 use tokio::sync::oneshot::error;
 
+/**
+ * A serialized error contains a status and an message.
+ * The error codes follow the HTTP status codes (4XX and 5XX) (https://developer.mozilla.org/en-US/docs/Web/HTTP/Status).
+ *
+ * Note that this SerializedError is just an intermediate struct to serialize the error.
+ *
+ * There are two types of errors:
+ * - 500: Unexpected errors - meant to be written to a log file and shown on an error page
+ * - XXX: Expected errors - meant to be shown to the user in a dialog box
+ *
+ */
+#[derive(Debug, Serialize)]
+pub struct SerializedError {
+    pub status: u16,
+    pub message: String,
+}
+
+// -- Auth related errors --
 #[derive(Debug, Error)]
-pub enum AuthError {
+pub enum UnauthenticatedError {
+    #[error("Not signed in.")]
+    NotSignedIn,
     #[error("Database error: {0:?}")]
     Db(#[from] surrealdb::Error),
-    #[error("IO error: {0:?}")]
-    Io(#[from] std::io::Error),
-    #[error("PIN Convertion error: {0:?}")]
-    PinConvertion(#[from] std::array::TryFromSliceError),
-    #[error("The PIN mutex was poisoned")]
-    PinPoisonError(String),
-    #[error("App data directory not found")]
-    AppDataNotFound,
-    #[error("Invalid UTF-8 in cookie file: {0:?}")]
-    InvalidUtf8(#[from] std::string::FromUtf8Error),
-    #[error("Serialization error: {0:?}")]
-    Serialization(#[from] serde_json::Error),
-    #[error("Encryption error: {0:?}")]
-    Encryption(#[from] orion::errors::UnknownCryptoError),
-    #[error("No password found in the database")]
-    NoPassword,
-    #[error("Not signed in")]
-    NotSignedIn,
+}
+
+impl Serialize for UnauthenticatedError {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let serializer_error = match self {
+            UnauthenticatedError::NotSignedIn => SerializedError {
+                status: 401,
+                message: self.to_string(),
+            },
+            _ => SerializedError {
+                status: 500,
+                message: self.to_string(),
+            },
+        };
+        serializer_error.serialize(serializer)
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum AuthError {
+    #[error("Invalid credentials.")]
+    InvalidCredentials,
+    #[error("User already exists.")]
+    UserExists,
+    #[error("Cookie error: {0:?}")]
+    Cookie(#[from] CookieError),
+    #[error("Database error: {0:?}")]
+    Db(#[from] surrealdb::Error),
 }
 
 impl Serialize for AuthError {
@@ -33,58 +66,119 @@ impl Serialize for AuthError {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_str(self.to_string().as_ref())
+        let serializer_error = match self {
+            AuthError::InvalidCredentials | AuthError::UserExists => SerializedError {
+                status: 400,
+                message: self.to_string(),
+            },
+            _ => SerializedError {
+                status: 500,
+                message: self.to_string(),
+            },
+        };
+        serializer_error.serialize(serializer)
     }
 }
 
-impl<T> From<PoisonError<T>> for AuthError {
-    fn from(e: PoisonError<T>) -> Self {
-        AuthError::PinPoisonError(e.to_string()).into()
-    }
+// Note: This error is NOT front-facing, so it does not need to be serialized.
+#[derive(Debug, Error)]
+pub enum CookieError {
+    #[error("App data directory not found")]
+    AppDataNotFound,
+    #[error("Cookie not found")]
+    Io(#[from] std::io::Error),
+    #[error("Invalid UTF-8 in cookie file: {0:?}")]
+    InvalidUtf8(#[from] std::string::FromUtf8Error),
 }
 
-#[derive(Debug, Serialize, Error)]
-pub enum BucketError {
+#[derive(Debug, Error)]
+pub enum LocalCredsError {
+    #[error("No password found for user in the database - database is probably corrupted.")]
+    NoPasswordFound,
+    #[error("App data directory not found")]
+    AppDataNotFound,
+    #[error("Unauthenticated error: {0:?}")]
+    Unauthenticated(#[from] UnauthenticatedError),
+    #[error("IO error: {0:?}")]
+    Io(#[from] std::io::Error),
+    #[error("PIN Convertion error: {0:?}")]
+    PinConvertion(#[from] std::array::TryFromSliceError),
+    #[error("Serialization error: {0:?}")]
+    Serialization(#[from] serde_json::Error),
+    #[error("Encryption error: {0:?}")]
+    Encryption(#[from] orion::errors::UnknownCryptoError),
     #[error("Database error: {0:?}")]
     Db(#[from] surrealdb::Error),
-    #[error("Authentification error: {0:?}")]
-    Auth(#[from] AuthError),
+}
+
+impl Serialize for LocalCredsError {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let serializer_error = SerializedError {
+            status: 500,
+            message: self.to_string(),
+        };
+        serializer_error.serialize(serializer)
+    }
+}
+
+// -- Bucket related errors --
+
+#[derive(Debug, Error)]
+pub enum BucketError {
+    #[error("Bucket name already exists.")]
+    BucketExists,
     #[error("Invalid Color: {0:?}, must be 6-digit hex code, e.g. \"#ff0000\"")]
     InvalidColor(String),
     #[error("No Bucket found with id bucket:{0}")]
     NotFound(String),
     #[error("Database is probably corrupted: No ID was returned from the database.")]
     NoID,
+    #[error("Database error: {0:?}")]
+    Db(#[from] surrealdb::Error),
 }
+
+impl Serialize for BucketError {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let serializer_error = match self {
+            BucketError::InvalidColor(_) | BucketError::BucketExists => SerializedError {
+                status: 400,
+                message: self.to_string(),
+            },
+            BucketError::NotFound(_) => SerializedError {
+                status: 404,
+                message: self.to_string(),
+            },
+            _ => SerializedError {
+                status: 500,
+                message: self.to_string(),
+            },
+        };
+        serializer_error.serialize(serializer)
+    }
+}
+
+// -- Account / Passwords related errors --
 
 #[derive(Debug, Error)]
 pub enum AccountError {
-    #[error("Database error: {0:?}")]
-    Db(#[from] surrealdb::Error),
-    #[error("Authentification error: {0:?}")]
-    Auth(#[from] AuthError),
-    #[error("No account found with id account:{0}")]
-    AccountNotFound(String),
-    #[error("No account found with id secure_account:{0}")]
-    SecureAccountNotFound(String),
-    #[error("No account found with id super_secure_account:{0}")]
-    SuperSecureAccountNotFound(String),
-    #[error("No account found with id sso_account:{0}")]
-    SsoAccountNotFound(String),
-    #[error("Database is probably corrupted: No Bucket found with id bucket:{0}")]
-    CorruptedBucket(String),
-    #[error("Database is probably corrupted: No Institution found with id institution:{0}")]
-    CorruptedInstitution(String),
-    #[error("Database is probably corrupted: No TwoFactor Authentification found with id two_factor:{0}")]
-    CorruptedTwoFactor(String),
-    #[error("The PIN mutex was poisoned")]
-    PinPoisonError(String),
-    #[error("The PIN was not found")]
-    PinNotFound,
     #[error("Password could not be generated:{0}")]
     PasswordGeneration(#[from] GenerationError),
-    #[error("Database is probably corrupted: No ID was returned from the database.")]
+
+    #[error("The PIN was not found. Try to restart the App.")]
+    PinNotFound,
+
+    #[error("No ID was returned from the database. The database is probably corrupted.")]
     NoID,
+    #[error("No account found with id account:{0}. The database is probably corrupted.")]
+    AccountNotFound(String),
+    #[error("Database error: {0:?}")]
+    Db(#[from] surrealdb::Error),
 }
 
 impl Serialize for AccountError {
@@ -92,58 +186,61 @@ impl Serialize for AccountError {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_str(self.to_string().as_ref())
+        let serializer_error = match self {
+            AccountError::PasswordGeneration(_) => SerializedError {
+                status: 400,
+                message: self.to_string(),
+            },
+            AccountError::PinNotFound | AccountError::AccountNotFound(_) | AccountError::NoID => {
+                SerializedError {
+                    status: 404,
+                    message: self.to_string(),
+                }
+            }
+            _ => SerializedError {
+                status: 500,
+                message: self.to_string(),
+            },
+        };
+        serializer_error.serialize(serializer)
     }
-}
-
-impl<T> From<PoisonError<T>> for AccountError {
-    fn from(e: PoisonError<T>) -> Self {
-        AccountError::PinPoisonError(e.to_string()).into()
-    }
-}
-
-#[derive(Debug, Serialize, Error)]
-pub enum TwoFactorError {
-    #[error("Database error: {0:?}")]
-    Db(#[from] surrealdb::Error),
-    #[error("Authentification error: {0:?}")]
-    Auth(#[from] AuthError),
-    #[error("No TwoFactor Authentification found with id twofactor:{0}")]
-    NotFound(String),
-}
-
-#[derive(Debug, Serialize, Error)]
-pub enum SsoError {
-    #[error("Database error: {0:?}")]
-    Db(#[from] surrealdb::Error),
-    #[error("Authentification error: {0:?}")]
-    Auth(#[from] AuthError),
-    #[error("No SSO Institution found with id institution:{0}")]
-    NotFound(String),
-}
-
-#[derive(Debug, Serialize, Error)]
-pub enum GenerationError {
-    #[error("Unable to generate password.")]
-    UnableToGenerate,
 }
 
 #[derive(Debug, Error)]
+#[error("Password generation error")]
+pub struct GenerationError;
+
+impl Serialize for GenerationError {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        SerializedError {
+            status: 400,
+            message: self.to_string(),
+        }
+        .serialize(serializer)
+    }
+}
+
+// -- Database related errors --
+
+#[derive(Debug, Error)]
 pub enum DatabaseError {
+    #[error("Invalid URL.")]
+    InvalidUrl,
+    #[error("Version mismatch. Expected: {expected:?}, found: {found:?}")]
+    VersionMismatch { expected: String, found: String },
+    #[error("No version found in database. It is probably not meant to be used with this app.")]
+    NoVersion,
     #[error("Database error: {0:?}")]
     Db(#[from] surrealdb::Error),
     #[error("IO error: {0:?}")]
     Io(#[from] std::io::Error),
-    #[error("No version found in database")]
-    NoVersion,
     #[error("Invalid UTF-8 in db url file: {0:?}")]
     InvalidUtf8(#[from] std::string::FromUtf8Error),
     #[error("App data directory not found")]
     AppDataNotFound,
-    #[error("Version mismatch. Expected: {expected:?}, found: {found:?}")]
-    VersionMismatch { expected: String, found: String },
-    #[error("Invalid URL")]
-    InvalidUrl,
 }
 
 impl Serialize for DatabaseError {
@@ -151,6 +248,19 @@ impl Serialize for DatabaseError {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_str(self.to_string().as_ref())
+        let serializer_error = match self {
+            DatabaseError::InvalidUrl
+            | DatabaseError::VersionMismatch { .. }
+            | DatabaseError::NoVersion
+            | DatabaseError::Db(_) => SerializedError {
+                status: 400,
+                message: self.to_string(),
+            },
+            _ => SerializedError {
+                status: 500,
+                message: self.to_string(),
+            },
+        };
+        serializer_error.serialize(serializer)
     }
 }

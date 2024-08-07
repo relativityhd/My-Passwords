@@ -9,13 +9,10 @@
 	let sourcecolor = argbFromHex('#825f6b');
 	const theme = themeFromSourceColor(sourcecolor);
 
-	// Print out the theme as JSON
-	console.log(JSON.stringify(theme, null, 2));
-
 	// Check if the user has dark mode turned on
 	const systemDark = false; //window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-	console.log({ systemDark });
+	console.log({ systemDark, theme: { ...theme } });
 	// Apply the theme to the body by updating custom properties for material tokens
 	applyTheme(theme, { target: document.body, dark: systemDark });
 
