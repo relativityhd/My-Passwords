@@ -71,7 +71,7 @@ surreal start --strict --auth --user [ROOT_USER_NAME] --pass [ROOT_USER_PASSWORD
   - [x] Change version numbers & author information in all config files (Cargo.toml, package.json, etc.)
   - [x] GitHub Action aufsetzen
   - [x] SurrealDB aufsetzen (Mit HTTPS und systemd) <https://surrealdb.com/docs/surrealdb/cli/start>
-- [ ] Beta v0.2 (Increase security)
+- [x] Beta v0.2 (Increase security)
   - [x] Improve Error Handling -> Propably propergate the errors from DB and enrich with more information
   - [x] Add a logging file
   - [x] SuperSecure Mode: Make it time-dependend, e.g. IBM requests password change every 3 months -> LegacySuperSecure?
@@ -107,3 +107,4 @@ surreal start --strict --auth --user [ROOT_USER_NAME] --pass [ROOT_USER_PASSWORD
 - [ ] Version Backlog
   - [ ] Dashboard with Statistics
   - [ ] User Documentation
+  - [ ] Add password to connect to database
