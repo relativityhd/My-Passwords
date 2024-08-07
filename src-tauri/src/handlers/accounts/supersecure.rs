@@ -22,6 +22,7 @@ struct SuperSecurePasswordData {
 
 #[tauri::command]
 #[specta::specta]
+#[allow(clippy::too_many_arguments)]
 pub async fn supersecure_live_input(
     lc: LC<'_>,
     institution: &str,

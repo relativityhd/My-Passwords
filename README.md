@@ -10,7 +10,7 @@ Start DB in memory
 surreal start --strict memory
 ```
 
-*or via Surrealist.*
+_or via Surrealist._
 
 First time-init:
 
@@ -41,7 +41,7 @@ $ sudo systemctl start surrealdb
 ```
 
 ```sh
-surreal start --strict --auth --user [ROOT_USER_NAME] --pass [ROOT_USER_PASSWORD] 
+surreal start --strict --auth --user [ROOT_USER_NAME] --pass [ROOT_USER_PASSWORD]
 ```
 
 ## Roadmap

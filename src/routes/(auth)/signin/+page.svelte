@@ -8,7 +8,6 @@
 	import { signin } from '$lib/bindings';
 	import { goto } from '$app/navigation';
 	import type { SerializedError } from '$lib/types';
-	import { tick } from 'svelte';
 	import { logLoadError } from '$lib/errorutils';
 
 	let identifierElement: MdFilledTextField;

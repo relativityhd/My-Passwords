@@ -22,7 +22,6 @@
 	let search_results: SearchResult[] = [];
 
 	let search_error = '';
-	$: search_results_visible = search_results.length > 0;
 
 	async function triggerSearch() {
 		const results = await search(searchterm).catch(
@@ -40,10 +39,8 @@
 		search_error = '';
 		if (searchterm.length < 2) {
 			search_results = [];
-			search_results_visible = false;
 			return;
 		}
-		search_results_visible = true;
 		timeout = setTimeout(triggerSearch, delay);
 	}
 

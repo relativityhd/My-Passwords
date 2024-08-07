@@ -133,7 +133,7 @@ pub async fn load_from_json(
             .await?;
         let legacycreated: Vec<Record> = db
             .create("legacy_account")
-            .content(NewLegacy { industry: industry })
+            .content(NewLegacy { industry })
             .await?;
         let sql = "RELATE $account->is_legacy->$legacy_account;";
         db.query(sql)

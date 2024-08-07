@@ -89,7 +89,7 @@ pub async fn connect(
     db: DB<'_>,
     url: &str,
 ) -> Result<(), DatabaseError> {
-    validate_url(&url).await?;
+    validate_url(url).await?;
     store_db_url(app_handle.path_resolver().app_data_dir(), url).await?;
     let (scheme, host) = parse_url(url)?;
     let db = match scheme {
@@ -106,7 +106,7 @@ pub async fn connect(
 pub async fn is_connected(app_handle: tauri::AppHandle, db: DB<'_>) -> Result<bool, DatabaseError> {
     debug!("Checking if db is connected");
     // Optimistic check
-    if (!db.health().await.is_err()) {
+    if (db.health().await.is_ok()) {
         debug!("Db is connected");
         return Ok(true);
     }
@@ -133,7 +133,7 @@ pub async fn is_connected(app_handle: tauri::AppHandle, db: DB<'_>) -> Result<bo
     };
     db.use_ns("accounts").use_db(DBNAME).await?;
     debug!("Db is connected");
-    Ok(!db.health().await.is_err())
+    Ok(db.health().await.is_ok())
 }
 
 #[tauri::command]

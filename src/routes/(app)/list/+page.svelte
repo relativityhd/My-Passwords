@@ -7,7 +7,7 @@
 	import CreateBucket from '$lib/forms/CreateBucket.svelte';
 	import { deleteBucket, loadFromJson } from '$lib/bindings.js';
 	import type { LegacyData, LegacySuperData } from '$lib/bindings.js';
-	import { ask, message, open } from '@tauri-apps/api/dialog';
+	import { ask, open } from '@tauri-apps/api/dialog';
 	import { readTextFile } from '@tauri-apps/api/fs';
 	import { logLoadError, logMsg } from '$lib/errorutils.js';
 

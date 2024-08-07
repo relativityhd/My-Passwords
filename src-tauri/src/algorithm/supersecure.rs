@@ -97,10 +97,7 @@ fn calc_idx_from_values(values: [usize; 4], len: usize) -> usize {
     let multiplier = (vsum % (100. * vlen) / 100.) / vlen;
 
     // This idx calculation is shit, however I want to stick to the original to dont mess with my passwords...
-    let idx = ((len - 1) as f64 * multiplier).round() as usize;
-    // let idx = (multiplier * len as f64).floor() as usize;
-
-    idx
+    ((len - 1) as f64 * multiplier).round() as usize
 }
 
 fn get_greek_letter(
@@ -146,7 +143,7 @@ fn get_egyptian_god(
 }
 
 fn get_special_chars(pool: &str, industry: &Industry, range: &WordLengthRange) -> String {
-    if pool.len() == 0 {
+    if pool.is_empty() {
         return "".to_string();
     }
 
@@ -209,6 +206,7 @@ fn get_world_wonder(
     WORLD_WONDERS[idx].to_string()
 }
 
+#[allow(clippy::too_many_arguments)]
 fn try_generation(
     institution: &str,
     industry: &Industry,
@@ -264,6 +262,7 @@ fn try_generation(
     )
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn gen_super_pw(
     institution: &str,
     industry: &Industry,

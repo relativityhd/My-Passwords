@@ -100,9 +100,9 @@ pub async fn signin(
             database: "dev",
             scope: "user",
             params: Credentials {
-                username: &identity,
-                email: &identity,
-                password: &password,
+                username: identity,
+                email: identity,
+                password,
             },
         })
         .await
@@ -136,9 +136,9 @@ pub async fn signup(
             database: "dev",
             scope: "user",
             params: Credentials {
-                username: &username,
-                email: &email,
-                password: &password,
+                username,
+                email,
+                password,
             },
         })
         .await

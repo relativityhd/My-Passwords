@@ -56,7 +56,7 @@ pub async fn create_sso(
         $bucket,
         $twofactor
     );";
-    let ssoaccount_id = ssoaccount_id.split(":").last().unwrap();
+    let ssoaccount_id = ssoaccount_id.split(':').last().unwrap();
     let record = db
         .query(sql)
         .bind(("ssoaccount_id", ssoaccount_id))
@@ -94,8 +94,8 @@ pub async fn edit_sso(
         $bucket,
         $twofactor
     );";
-    let id = id.split(":").last().unwrap();
-    let ssoaccount_id = ssoaccount_id.split(":").last().unwrap();
+    let id = id.split(':').last().unwrap();
+    let ssoaccount_id = ssoaccount_id.split(':').last().unwrap();
     let record = db
         .query(sql)
         .bind(("id", id))

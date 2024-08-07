@@ -1,6 +1,6 @@
-import { error, redirect } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import { isConnected, isAuthenticated, hasLc, getUsername } from '$lib/bindings';
-import { logLoadError, logMsg } from '$lib/errorutils';
+import { logLoadError } from '$lib/errorutils';
 
 /** @type {import('./$types').LayoutLoad} */
 export async function load() {
