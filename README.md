@@ -78,11 +78,8 @@ surreal start --strict --auth --user [ROOT_USER_NAME] --pass [ROOT_USER_PASSWORD
   - [x] Input Sanitations on Forms
   - [x] Enable and redo "Load Lagacy JSON"
   - [x] Run Clippy and remove all dbg / dbg / console.log and all other warnings
-- [ ] Beta v0.3 (DB & Offline)
+- [ ] Beta v0.3 (Add more features and UX)
   - [ ] Improve DB Connection Page (UX)
-  - [ ] Offline Mode
-  - [ ] Add other databases to allowlist?
-- [ ] Beta v0.4 (Add more features and UX)
   - [ ] Manage Buckets
   - [ ] Create 2FA
   - [ ] Manage 2FA
@@ -92,7 +89,7 @@ surreal start --strict --auth --user [ROOT_USER_NAME] --pass [ROOT_USER_PASSWORD
   - [ ] Add search-aliases for institutions
   - [ ] Add loading indicators
   - [ ] Add manager for legacy passwords
-- [ ] Beta v0.5 (UI & UX)
+- [ ] Beta v0.4 (UI & UX)
   - [ ] Make own Delete-Bucket dialog
   - [ ] Make bucket color theme agnostic
   - [ ] Random Bucket Wallpaper as theme
@@ -101,10 +98,12 @@ surreal start --strict --auth --user [ROOT_USER_NAME] --pass [ROOT_USER_PASSWORD
   - [ ] Automaticly search for institution website and write it to acc-page
   - [ ] Accessibility
 - [ ] Release
+  - [ ] Add other databases to allowlist?
   - [ ] Set prod-log level to warn
   - [ ] Windows signing
   - [ ] MacOD signing
 - [ ] Version Backlog
+  - [ ] Offline Mode
   - [ ] Dashboard with Statistics
   - [ ] User Documentation
   - [ ] Add password to connect to database
